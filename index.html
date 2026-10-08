@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Garden Planner</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#23301f;--mute:#6b7566;--line:#e2dfd3;--accent:#4a7c3a;--accent-ink:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171c15;--card:#222a1f;--ink:#e9eee4;--mute:#9aa694;--line:#34402f;--accent:#7bb35f;--accent-ink:#10200a}}
+:root[data-theme="dark"]{--bg:#171c15;--card:#222a1f;--ink:#e9eee4;--mute:#9aa694;--line:#34402f;--accent:#7bb35f;--accent-ink:#10200a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font:600 24px Georgia,serif;margin:4px 0 12px}
+nav{display:flex;gap:6px;margin-bottom:14px}
+nav button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:inherit;cursor:pointer}
+nav button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;width:100%}
+label{display:block;font-size:13px;color:var(--mute);margin:8px 0 3px}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 14px;font:inherit;cursor:pointer;margin-top:10px}
+.btn.ghost{background:transparent;color:var(--mute);border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{border:1px solid var(--line);border-radius:99px;padding:5px 11px;font-size:14px;cursor:pointer;background:var(--bg);color:var(--ink)}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cal .h{font-size:12px;color:var(--mute)}
+.cal .d{min-height:46px;border:1px solid var(--line);border-radius:6px;font-size:13px;padding:2px;background:var(--bg)}
+.cal .d.today{border-color:var(--accent);border-width:2px}
+.dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:2px}
+.dot{width:7px;height:7px;border-radius:50%}
+.ev{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.ev input{width:20px;height:20px;flex:none}
+.ev.done span{text-decoration:line-through;color:var(--mute)}
+.mute{color:var(--mute);font-size:14px}
+.x{background:none;border:0;color:var(--mute);cursor:pointer;font-size:18px}
+</style>
+</head>
+<body>
+<main>
+<div class="row"><h1>🌿 Garden Planner</h1><small id="sync" class="mute" style="cursor:pointer" onclick="syncTap()"></small></div>
+<nav id="nav"></nav>
+<div id="view"></div>
+</main>
+<script>
+const TASKS={
+ heavy:{n:'Heavy pruning',a:'last',o:-35,c:'#b5523b',tip:'Late winter, before buds break'},
+ light:{n:'Light pruning',a:'last',o:45,c:'#6a994e',tip:'After spring flowering'},
+ dead:{n:'Deadhead flowers',a:'last',o:60,rep:14,end:-30,c:'#d4a017',tip:'Every 2 weeks through summer'},
+ fert:{n:'Fertilize',a:'last',o:7,c:'#3f8f9b',tip:'As growth begins in spring'},
+ div:{n:'Divide',a:'first',o:-30,c:'#8a5fb0',tip:'Early fall, perennials'},
+ cut:{n:'Cut back for winter',a:'first',o:7,c:'#7a6a55',tip:'After the first hard frost'}
+};
+const TYPES={Rose:['heavy','dead','fert','cut'],Perennial:['dead','div','cut'],Shrub:['light','heavy','fert'],Tree:['heavy'],Herb:['light','cut'],Annual:['dead','fert'],Bulb:['cut']};
+// approximate [last spring frost, first fall frost] by USDA zone (MM-DD)
+const ZONES={3:['05-10','09-20'],4:['05-05','09-28'],5:['04-28','10-08'],6:['04-20','10-15'],7:['04-12','10-25'],8:['03-28','11-05'],9:['03-01','11-20'],10:['02-01','12-15']};
+TASKS.lavp={n:'Prune before frost',a:'first',o:-42,c:'#9b6fd1',sp:1,tip:'About 6 weeks before first frost, so regrowth hardens off'};
+TASKS.out={n:'Clear out spent plants',a:'first',o:7,c:'#999',tip:'After frost ends the season'};
+const WHY={heavy:'Hard pruning on schedule builds strong structure and more blooms.',light:"Pruning right after flowering protects next year's buds.",dead:'Removing spent blooms redirects energy into more flowers and healthier roots.',fert:'Feeding as growth starts fuels the whole season.',div:'Dividing prevents crowding, which lowers vigor and invites disease.',cut:'Cleaning up after frost removes pests and disease that overwinter.',lavp:'Lavender needs pruning about 6 weeks before first frost so new growth hardens off before winter. Cut back by roughly a third, never into old wood.',out:'Removing spent annuals keeps disease from carrying over.'};
+const K={h:'heavy',l:'light',d:'dead',f:'fert',v:'div',c:'cut',p:'lavp'},LV=['','Optional','Recommended','Critical'];
+// name|scientific|min zone|max zone|type|tasks with priority 1-3 (lo=0 means true annual)
+const DB=`Rose|Rosa spp.|4|9|Rose|h3,d2,f2,c1
+Knock Out Rose|Rosa 'Radrazz'|4|9|Rose|h3,d1,f2
+Bigleaf Hydrangea|Hydrangea macrophylla|6|9|Shrub|l2,f1
+Panicle Hydrangea|Hydrangea paniculata|3|8|Shrub|h3,f1
+Oakleaf Hydrangea|Hydrangea quercifolia|5|9|Shrub|l2
+Lilac|Syringa vulgaris|3|7|Shrub|l3
+Forsythia|Forsythia x intermedia|5|8|Shrub|l3
+Azalea|Rhododendron spp.|5|9|Shrub|l2,f1
+Boxwood|Buxus sempervirens|5|9|Shrub|l2
+Butterfly Bush|Buddleja davidii|5|9|Shrub|h3,d2
+Spirea|Spiraea japonica|3|8|Shrub|h2,d1
+Lantana|Lantana camara|8|11|Shrub|h2
+Wisteria|Wisteria sinensis|5|9|Shrub|l3,h2
+Crape Myrtle|Lagerstroemia indica|6|9|Tree|h2,f1
+Japanese Maple|Acer palmatum|5|8|Tree|l2
+Flowering Dogwood|Cornus florida|5|9|Tree|l1
+Apple|Malus domestica|3|8|Tree|h3,f2
+Peony|Paeonia lactiflora|3|8|Perennial|c3,d1,v1
+Daylily|Hemerocallis spp.|3|10|Perennial|d2,v2,c1
+Hosta|Hosta spp.|3|9|Perennial|c2,v2
+Purple Coneflower|Echinacea purpurea|3|9|Perennial|d2,c1,v1
+Black-eyed Susan|Rudbeckia fulgida|3|9|Perennial|d2,c1,v2
+Russian Sage|Perovskia atriplicifolia|4|9|Perennial|h3
+Lavender|Lavandula angustifolia|5|9|Perennial|p3,d1
+Sedum|Hylotelephium 'Autumn Joy'|3|9|Perennial|h2,v1
+Meadow Sage|Salvia nemorosa|4|8|Perennial|d3,c1
+Garden Phlox|Phlox paniculata|4|8|Perennial|d2,v2,c1
+Catmint|Nepeta x faassenii|3|8|Perennial|d3
+Bearded Iris|Iris germanica|3|9|Perennial|v3,c1
+Maiden Grass|Miscanthus sinensis|4|9|Perennial|h3
+Hellebore|Helleborus orientalis|4|9|Perennial|l2
+Bee Balm|Monarda didyma|3|9|Perennial|d2,v2
+Astilbe|Astilbe x arendsii|3|8|Perennial|c1,v2
+Clematis|Clematis spp.|4|9|Perennial|l3
+Dahlia|Dahlia spp.|8|11|Perennial|d3,f2
+Canna Lily|Canna x generalis|7|11|Perennial|c2
+Geranium (Pelargonium)|Pelargonium x hortorum|10|11|Perennial|d3,f2
+Coleus|Coleus scutellarioides|10|11|Perennial|l3
+Daffodil|Narcissus spp.|3|9|Bulb|c1
+Tulip|Tulipa spp.|3|8|Bulb|d2,c1
+Mint|Mentha spp.|3|9|Herb|l2,c1
+Rosemary|Salvia rosmarinus|7|10|Herb|l2
+Thyme|Thymus vulgaris|4|9|Herb|l2
+Petunia|Petunia x hybrida|10|11|Annual|d3,f3
+Marigold|Tagetes spp.|0|99|Annual|d3
+Zinnia|Zinnia elegans|0|99|Annual|d3,f1
+Impatiens|Impatiens walleriana|0|99|Annual|d2,f2
+Cosmos|Cosmos bipinnatus|0|99|Annual|d2
+Sunflower|Helianthus annuus|0|99|Annual|f1
+Tomato|Solanum lycopersicum|0|99|Annual|f3,l2
+Basil|Ocimum basilicum|0|99|Annual|l3`.split('\n').map(r=>{const a=r.split('|'),pri={};a[5].split(',').forEach(x=>pri[K[x[0]]]=+x[1]);return{n:a[0],s:a[1],lo:+a[2],hi:+a[3],type:a[4],pri}});
+function stat(sp){const z=S.set.zone;if(sp.lo===0)return{k:'annual',t:'Annual: replant each year'};if(z<sp.lo)return{k:'annual',t:`Grown as an annual in zone ${z} (hardy to zone ${sp.lo})`};if(z>sp.hi)return{k:'warn',t:`Perennial, but zone ${z} may be too warm (best to zone ${sp.hi})`};return{k:'peren',t:`Perennial in zone ${z}`+(z===sp.lo?' (borderline: mulch in winter)':'')}}
+function eff(p){const sp=DB[p.sp];if(sp&&stat(sp).k==='annual'){const t=p.tasks.filter(x=>['dead','fert','light'].includes(x));t.push('out');return t}return p.tasks}
+const pr=e=>(e.p.pri&&e.p.pri[e.t])||(e.t==='out'?1:2);
+function focus(){const t0=new Date(today.getFullYear(),today.getMonth(),today.getDate()),y=t0.getFullYear();
+ const ev=[...events(y),...events(y+1)].filter(e=>!S.done[ek(e)]&&e.d>=addDays(t0,-30)&&e.d<=addDays(t0,30)).map(e=>{const dd=Math.round((e.d-t0)/864e5);return{...e,dd,sc:pr(e)*10+(dd<0?30:dd<=7?20:10)}}).sort((a,b)=>b.sc-a.sc||a.d-b.d).slice(0,6);
+ const rows=ev.map(e=>{const w=e.dd<0?`overdue by ${-e.dd} day${e.dd===-1?'':'s'}`:e.dd===0?'due today':`in ${e.dd} days`;return `<div class="ev"><input type="checkbox" onchange="tog('${ek(e)}')"><span><b>${esc(e.p.name)}</b>: ${TASKS[e.t].n}<br><small class="mute">${LV[pr(e)]} · ${w}<br>${esc((DB[e.p.sp]&&DB[e.p.sp].why&&DB[e.p.sp].why[e.t])||WHY[e.t])}</small></span></div>`}).join('');
+ return `<div class="card"><b>Focus for the next 30 days</b>${rows||'<p class="mute">You\'re all caught up. 🌱</p>'}</div>`}
+const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+let S={plants:[],done:{},set:{zone:7,south:false,last:'04-12',first:'10-25'}};
+try{const r=localStorage.getItem('garden-v1');if(r)S=JSON.parse(r)}catch(e){}
+const SUN={full:'Full sun (6+ hrs)',part:'Part sun (4-6 hrs)',pshade:'Part shade (2-4 hrs)',shade:'Full shade (<2 hrs)'};
+const NB=DB.length;S.spots=S.spots||[];S.extra=S.extra||[];S.extra.forEach(x=>DB.push(x));
+// migrate saved lavender plants to the species-specific pruning task
+for(const p of S.plants){const sp=DB[p.sp];if(sp&&sp.n==='Lavender'){const i=p.tasks.indexOf('light');if(i>=0)p.tasks[i]='lavp';if(p.pri&&p.pri.light!=null){p.pri.lavp=3;delete p.pri.light}}}
+for(const p of S.plants)if(p.loc&&!p.spot&&!Array.isArray(p.spots)){let s=S.spots.find(x=>x.name.toLowerCase()===p.loc.toLowerCase());if(!s){s={id:'s'+Math.random().toString(36).slice(2,8),name:p.loc,sun:''};S.spots.push(s)}p.spot=s.id}
+for(const p of S.plants){if(!Array.isArray(p.spots))p.spots=p.spot?[p.spot]:[];delete p.spot;delete p.loc}
+const persist=()=>{try{localStorage.setItem('garden-v1',JSON.stringify(S))}catch(e){}};
+const save=()=>{S.dirty=true;persist();sched()};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=new Date();let cur={y:today.getFullYear(),m:today.getMonth()},tab='cal',draft={type:'Perennial',tasks:TYPES.Perennial.slice(),name:'',sp:null,pri:{},spots:[]};
+const key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+function anchor(y,s){const[m,d]=s.split('-').map(Number);let x=new Date(y,m-1,d);return S.set.south?addDays(x,182):x}
+function events(y){ // all events for calendar year y
+ const out=[];
+ for(const p of S.plants)for(const t of eff(p)){const T=TASKS[t];if(!T)continue;
+  // include neighbouring year anchors so shifted dates still land correctly
+  for(const yy of [y-1,y,y+1]){
+   const base=anchor(yy,T.a==='last'?S.set.last:S.set.first);
+   let d=addDays(base,T.o);
+   if(T.rep){const end=addDays(anchor(yy,S.set.first),T.end);while(d<=end){if(d.getFullYear()===y)out.push({d:new Date(d),p,t});d=addDays(d,T.rep)}}
+   else if(d.getFullYear()===y)out.push({d,p,t});
+  }}
+ const seen=new Set();return out.filter(e=>{const k=ek(e);if(seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>a.d-b.d);
+}
+const ek=e=>e.p.id+'|'+e.t+'|'+key(e.d);
+
+function nav(){document.getElementById('nav').innerHTML=[['cal','Calendar'],['plants','Plants'],['spots','Spots'],['set','Settings']].map(([k,l])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('')}
+function render(){nav();document.getElementById('view').innerHTML=tab==='cal'?vCal():tab==='plants'?vPlants():tab==='spots'?vSpots():vSet();}
+
+function vCal(){
+ if(!S.plants.length)return `<div class="card">No plants yet. Add some on the <b>Plants</b> tab and your care calendar will appear here.</div>`;
+ const ev=events(cur.y).filter(e=>e.d.getMonth()===cur.m);
+ const first=new Date(cur.y,cur.m,1),n=new Date(cur.y,cur.m+1,0).getDate();
+ let g=['S','M','T','W','T','F','S'].map(x=>`<div class="h">${x}</div>`).join('');
+ for(let i=0;i<first.getDay();i++)g+='<div></div>';
+ for(let d=1;d<=n;d++){const es=ev.filter(e=>e.d.getDate()===d);const isT=key(new Date(cur.y,cur.m,d))===key(today);
+  g+=`<div class="d ${isT?'today':''}">${d}<div class="dots">${es.slice(0,6).map(e=>`<i class="dot" style="background:${TASKS[e.t].c}"></i>`).join('')}</div></div>`}
+ const list=ev.length?ev.map(e=>{const k=ek(e),dn=S.done[k];return `<div class="ev ${dn?'done':''}"><input type="checkbox" ${dn?'checked':''} onchange="tog('${k}')"><i class="dot" style="background:${TASKS[e.t].c}"></i><span><b>${esc(e.p.name)}</b>: ${TASKS[e.t].n}<br><small class="mute">${e.d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</small></span></div>`}).join(''):'<p class="mute">Nothing scheduled this month.</p>';
+ return `${focus()}<div class="card"><div class="row"><button class="btn ghost" onclick="mv(-1)">‹</button><b>${MON[cur.m]} ${cur.y}</b><button class="btn ghost" onclick="mv(1)">›</button></div><div class="cal" style="margin-top:10px">${g}</div></div>
+ <div class="card"><b>Tasks this month</b>${list}</div>
+ <p class="mute">Dates are estimates from your frost dates; adjust them in Settings.</p>`;
+}
+function mv(n){cur.m+=n;if(cur.m<0){cur.m=11;cur.y--}if(cur.m>11){cur.m=0;cur.y++}render()}
+function tog(k){S.done[k]=!S.done[k];save();render()}
+
+function chips(sel,fn){return `<div class="chips">${Object.entries(TASKS).filter(([k,t])=>!t.sp||sel.includes(k)).map(([k,t])=>`<span class="chip ${sel.includes(k)?'on':''}" title="${t.tip}" onclick="${fn}('${k}')">${t.n}</span>`).join('')}</div>`}
+function vPlants(){
+ const form=`<div class="card"><b>Add a plant manually</b><div class="mute">Type a name for suggestions, or enter anything you like. Photo identification is optional.</div>
+ <label>Name (common or scientific)</label><input id="pn" autocomplete="off" value="${esc(draft.name||'')}" oninput="draft.name=this.value;draft.sp=null;ac(this.value);lkBtn()" placeholder="Start typing, e.g. hydrangea or Rosa"><div id="sg"></div><div id="lk">${lkHtml()}</div>${draft.sp!=null?`<div class="mute" style="margin-top:6px">${stBadge(DB[draft.sp])}</div>`:''}
+ <label>Type</label><select id="pt" onchange="draft.type=this.value;if(draft.sp==null)draft.tasks=TYPES[this.value].slice();render()">${Object.keys(TYPES).map(t=>`<option ${t===draft.type?'selected':''}>${t}</option>`).join('')}</select>
+ <label>Garden spots (pick all that apply)</label>${spotChecks(draft.spots,'dsp')}
+ <label>Care tasks to track</label>${chips(draft.tasks,'dt')}
+ <label>Notes</label><textarea id="po" rows="2">${esc(draft.notes||'')}</textarea>
+ <button class="btn" onclick="addP()">Add plant</button></div>`;
+ const list=S.plants.map(p=>`<div class="card"><div class="row"><div>${p.photo?`<img src="${p.photo}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;float:left;margin-right:10px">`:''}<b>${esc(p.name)}</b><div class="mute">${esc(p.type)}</div><div style="margin-top:6px">${spotChecks(p.spots,"tsp.bind(null,'"+p.id+"')")}</div>${DB[p.sp]?`<div class="mute"><i>${esc(DB[p.sp].s)}</i> · ${stat(DB[p.sp]).t}</div>`:''}</div><button class="x" onclick="delP('${p.id}')" title="Remove">✕</button></div>${p.notes?`<p class="mute">${esc(p.notes)}</p>`:''}${chips(p.tasks,"tp.bind(null,'"+p.id+"')")}</div>`).join('');
+ return idCard()+form+(list||'');
+}
+function dt(k){const a=draft.tasks,i=a.indexOf(k);i<0?a.push(k):a.splice(i,1);keep();render()}
+function keep(){}
+const sunOpts=v=>`<option value="">Sunlight not set</option>`+Object.entries(SUN).map(([k,l])=>`<option value="${k}" ${k===v?'selected':''}>${l}</option>`).join('');
+const spotChecks=(sel,fn)=>S.spots.length?`<div class="chips">${S.spots.map(x=>`<label class="chip" style="display:flex;gap:6px;align-items:center;margin:0;color:var(--ink);font-size:14px"><input type="checkbox" style="width:auto" ${sel.includes(x.id)?'checked':''} onchange="${fn}('${x.id}')">${esc(x.name)}${x.sun?' · '+SUN[x.sun].split(' (')[0]:''}</label>`).join('')}</div>`:'<div class="mute">Create spots on the Spots tab first.</div>';
+function dsp(id){const a=draft.spots,i=a.indexOf(id);i<0?a.push(id):a.splice(i,1)}
+function tsp(pid,sid){const p=S.plants.find(x=>x.id===pid),i=p.spots.indexOf(sid);i<0?p.spots.push(sid):p.spots.splice(i,1);save()}
+function vSpots(){
+ const list=S.spots.map(s=>{const n=S.plants.filter(p=>p.spots.includes(s.id));return `<div class="card"><div class="row"><b>${esc(s.name)}</b><button class="x" onclick="delS('${s.id}')" title="Remove">✕</button></div><label>Sunlight</label><select onchange="setSun('${s.id}',this.value)">${sunOpts(s.sun)}</select><p class="mute">${n.length?n.map(p=>esc(p.name)).join(', '):'No plants here yet'}</p></div>`}).join('');
+ return `<div class="card"><b>Add a garden spot</b><label>Name</label><input id="sn" placeholder="e.g. Back fence bed"><label>Sunlight</label><select id="ss">${sunOpts('')}</select><button class="btn" onclick="addS()">Add spot</button></div>${list}<p class="mute">Coming later: plant recommendations for each spot based on its sunlight and the traits you want.</p>`}
+function addS(){const n=document.getElementById('sn').value.trim();if(!n){document.getElementById('sn').focus();return}S.spots.push({id:'s'+Date.now(),name:n,sun:document.getElementById('ss').value});save();render()}
+function setSun(id,v){S.spots.find(s=>s.id===id).sun=v;save();render()}
+function delS(id){if(confirm('Remove this spot? Plants in it will become unassigned.')){S.spots=S.spots.filter(s=>s.id!==id);S.plants.forEach(p=>{p.spots=p.spots.filter(x=>x!==id)});draft.spots=draft.spots.filter(x=>x!==id);save();render()}}
+const API_URL='/api/identify';
+const lsg=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lss=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+let ID={busy:false,res:null,err:'',thumb:''};
+function shrink(file,max,q){return new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(file);im.onload=()=>{const r=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',q))};im.onerror=()=>no(new Error('Could not read that image'));im.src=u})}
+let HEALTH=false;
+async function api(path,body){const pw=lsg('garden-pw')||prompt('Enter the app password');if(!pw)throw new Error('Password needed');
+ const r=await fetch(path,{method:'POST',headers:{'content-type':'application/json','x-app-password':pw},body:JSON.stringify(body)});
+ const j=await r.json().catch(()=>({}));
+ if(r.status===401){lss('garden-pw',null);throw new Error('Wrong password. Try again.')}
+ if(!r.ok)throw new Error(j.error||'Request failed. Try again in a moment.');
+ lss('garden-pw',pw);return j}
+const dbIdx=sci=>{const l=sci.toLowerCase(),g=l.split(' ')[0];return DB.findIndex(s=>s.s.toLowerCase()===l||(/spp\./.test(s.s)&&s.s.toLowerCase().startsWith(g+' ')))};
+async function identify(inp){const f=inp.files[0];if(!f)return;ID={busy:true,res:null,err:'',thumb:'',msg:'Identifying...'};render();
+ try{const big=await shrink(f,1024,.8);ID.thumb=await shrink(f,320,.7);
+  const j=await api('/api/identify',{image:big.split(',')[1],zone:S.set.zone,health:HEALTH});
+  if(j.identified&&j.needsCare){const i=dbIdx(j.scientific);
+   if(i>=0){const e=DB[i];j.tasks=Object.entries(e.pri).map(([key,priority])=>({key,priority,why:(e.why&&e.why[key])||WHY[key]}));j.type=e.type;j.hardiness={min:e.lo,max:e.hi};j.notes='';j.toxicity=''}
+   else{ID.msg='Looking up care...';render();
+    try{{const c=await api('/api/care',{scientific:j.scientific,common:j.common,zone:S.set.zone});Object.assign(j,{type:c.type,hardiness:c.hardiness,tasks:c.tasks,notes:c.notes,toxicity:c.toxicity})}}
+    catch(e){j.tasks=[];j.type='Perennial';j.notes='Care details unavailable. Adjust tasks by hand.';j.toxicity=''}}}
+  ID.res=j}catch(e){ID.err=e.message}
+ ID.busy=false;render()}
+let LK={busy:false,msg:''};
+const lkHtml=()=>draft.sp==null&&(draft.name||'').trim().length>=3?`<button class="btn ghost" ${LK.busy?'disabled':''} onclick="lookupCare()">${LK.busy?'Looking up...':'Look up care for this name'}</button>${LK.msg?`<div class="mute">${esc(LK.msg)}</div>`:''}`:'';
+const lkBtn=()=>{const e=document.getElementById('lk');if(e)e.innerHTML=lkHtml()};
+async function lookupCare(){const n=(draft.name||'').trim();LK={busy:true,msg:''};lkBtn();
+ try{const c=await api('/api/care',{scientific:n,zone:S.set.zone});
+  if(!c.recognized||!c.tasks.length)throw new Error("Couldn't match that to a specific garden plant. Try the scientific name, or add it with generic care.");
+  let i=dbIdx(c.scientific);
+  if(i<0){const e={n:c.common||n,s:c.scientific,lo:c.hardiness.min,hi:c.hardiness.max,type:c.type,pri:{},why:{}};c.tasks.forEach(t=>{e.pri[t.key]=t.priority;e.why[t.key]=t.why});DB.push(e);S.extra.push(e);i=DB.length-1;save()}
+  const g=id=>{const e=document.getElementById(id);return e?e.value:''};
+  draft.notes=[g('po').trim(),c.notes,c.toxicity?'Safety: '+c.toxicity:''].filter(Boolean).join('\n');
+  draft.name=c.common||n;draft.sp=i;draft.type=DB[i].type;draft.tasks=Object.keys(DB[i].pri);draft.pri=DB[i].pri;LK={busy:false,msg:''};render()}
+ catch(e){LK={busy:false,msg:e.message};lkBtn()}}
+const hl=r=>r.health?`<p class="mute"><b>Health check:</b> ${r.health.issues.length?r.health.issues.map(x=>esc(x.name)+' ('+x.probability+'%)').join(', '):(r.health.healthy?'Looks healthy.':'No clear issue found.')}</p>`:'';
+function idCard(){const r=ID.res;let out='';
+ if(r&&!r.identified)out='<p>Could not identify that plant. Try a clear, close photo of a leaf or flower.</p>';
+ else if(r){const lv=['','Optional','Recommended','Critical'];
+  out=`<div class="ev">${ID.thumb?`<img src="${ID.thumb}" alt="" style="width:72px;height:72px;object-fit:cover;border-radius:8px">`:''}<span><b>${esc(r.common)}</b> <i>${esc(r.scientific)}</i><br><small class="mute">Confidence: ${esc(r.confidence)}${r.probability?' ('+r.probability+'%)':''}${r.source==='plantid'?' · Identified with Plant.id':''}</small></span></div>
+  ${r.alternatives.length?`<p class="mute">Could also be:</p><div class="chips">${r.alternatives.map(a=>`<span class="chip" onclick="tryAlt('${esc(a.common).replace(/'/g,'')}')">${esc(a.common)}</span>`).join('')}</div>`:''}
+  ${r.tasks.map(t=>`<div class="ev"><i class="dot" style="background:${TASKS[t.key].c}"></i><span><b>${TASKS[t.key].n}</b> <small class="mute">${lv[t.priority]}</small><br><small class="mute">${esc(t.why)}</small></span></div>`).join('')}
+  ${r.toxicity?`<p class="mute"><b>Safety:</b> ${esc(r.toxicity)}</p>`:''}
+  ${hl(r)}<button class="btn" onclick="useId()">Add to my plants</button> <button class="btn ghost" onclick="ID.res=null;render()">Discard</button>`}
+ return `<div class="card"><b>Identify from a photo</b><p class="mute">This is a best guess. Confirm before eating or handling any plant.</p>${ID.busy?'<p>'+esc(ID.msg)+'</p>':`<label class="btn" style="display:inline-block;cursor:pointer">Take or choose a photo<input type="file" accept="image/*" hidden onchange="identify(this)"></label><label class="mute" style="display:block"><input type="checkbox" style="width:auto" ${HEALTH?'checked':''} onchange="HEALTH=this.checked"> Also check plant health (Plant.id only, uses an extra credit)</label>`}${ID.err?`<p style="color:#b5523b">${esc(ID.err)}</p>`:''}${out}</div>`}
+function tryAlt(n){ID.res=null;draft.name=n;draft.sp=null;render();ac(n)}
+function useId(){const r=ID.res;let i=dbIdx(r.scientific);
+ if(i<0&&r.tasks.length){const e={n:r.common,s:r.scientific,lo:r.hardiness.min,hi:r.hardiness.max,type:r.type,pri:{},why:{}};r.tasks.forEach(t=>{e.pri[t.key]=t.priority;e.why[t.key]=t.why});DB.push(e);S.extra.push(e);i=DB.length-1}
+ if(i>=0){draft.name=r.common||DB[i].n;draft.sp=i;draft.type=DB[i].type;draft.tasks=Object.keys(DB[i].pri);draft.pri=DB[i].pri}
+ else{draft.name=r.common;draft.sp=null;draft.type=r.type||'Perennial';draft.tasks=TYPES[draft.type].slice();draft.pri={}}
+ draft.photo=ID.thumb;draft.notes=[r.notes,r.toxicity?'Safety: '+r.toxicity:''].filter(Boolean).join('\n');ID.res=null;save();render()}
+function stBadge(sp){return `<b>${esc(sp.s)}</b> · ${stat(sp).t}`}
+function ac(q){q=q.trim().toLowerCase();const el=document.getElementById('sg');if(q.length<2){el.innerHTML='';return}
+ const m=DB.map((s,i)=>[s,i]).filter(([s])=>(s.n+' '+s.s).toLowerCase().includes(q)).slice(0,6);
+ el.innerHTML=m.map(([s,i])=>`<div class="ev" style="cursor:pointer" onclick="pick(${i})"><span><b>${esc(s.n)}</b><br><small class="mute">${esc(s.s)} · ${stat(s).t}</small></span></div>`).join('')}
+function pick(i){const s=DB[i],g=id=>{const e=document.getElementById(id);return e?e.value:''};draft.notes=g('po');draft.name=s.n;draft.sp=i;draft.type=s.type;draft.tasks=Object.keys(s.pri);draft.pri=s.pri;render()} 
+function addP(){const n=document.getElementById('pn').value.trim();if(!n){document.getElementById('pn').focus();return}
+ S.plants.push({id:'p'+Date.now(),name:n,type:draft.type,spots:draft.spots.slice(),photo:draft.photo||'',notes:document.getElementById('po').value.trim(),tasks:draft.tasks.slice(),sp:draft.sp,pri:draft.pri});draft={type:'Perennial',tasks:TYPES.Perennial.slice(),name:'',sp:null,pri:{},spots:[]};save();render()}
+function tp(id,k){const p=S.plants.find(x=>x.id===id),i=p.tasks.indexOf(k);i<0?p.tasks.push(k):p.tasks.splice(i,1);save();render()}
+function delP(id){if(confirm('Remove this plant?')){S.plants=S.plants.filter(p=>p.id!==id);save();render()}}
+
+function vSet(){const s=S.set;
+ return `<div class="card"><b>Your climate</b><p class="mute">Task dates are scheduled relative to your last spring frost and first fall frost.</p>
+ <label>USDA hardiness zone</label><select onchange="setZ(this.value)">${Object.keys(ZONES).map(z=>`<option ${+z===s.zone?'selected':''} value="${z}">Zone ${z}</option>`).join('')}</select>
+ <label>Last spring frost (MM-DD)</label><input value="${s.last}" onchange="setD('last',this.value)">
+ <label>First fall frost (MM-DD)</label><input value="${s.first}" onchange="setD('first',this.value)">
+ <label><input type="checkbox" style="width:auto" ${s.south?'checked':''} onchange="S.set.south=this.checked;save()"> Southern hemisphere (shifts seasons by 6 months)</label></div>
+ <div class="card"><b>Backup</b><p class="mute">Download a copy of your garden, or restore one. Restoring replaces everything on this device (and the cloud copy, if sync is on).</p><button class="btn" onclick="exportData()">Download backup</button> <label class="btn ghost" style="display:inline-block;cursor:pointer">Restore backup<input type="file" accept="application/json" hidden onchange="importData(this)"></label></div><div class="card"><b>Task timing guide</b>${Object.values(TASKS).map(t=>`<div class="ev"><i class="dot" style="background:${t.c}"></i><span><b>${t.n}</b><br><small class="mute">${t.tip}</small></span></div>`).join('')}</div>`;
+}
+function setZ(z){S.set.zone=+z;[S.set.last,S.set.first]=ZONES[z];save();render()}
+function setD(k,v){if(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v)){S.set[k]=v;save()}else{alert('Use the format MM-DD, like 04-15');render()}}
+// ---- cloud sync ----
+const payload=()=>{const{ver,dirty,...d}=S;return d};
+const sid=x=>String(x==null?'':x).replace(/[^\w-]/g,'');
+function adopt(d,v){const x=Object.assign({plants:[],done:{},set:{},spots:[],extra:[]},d),t=x.set||{};
+ x.set={zone:ZONES[t.zone]?+t.zone:7,south:!!t.south,last:/^\d\d-\d\d$/.test(t.last)?t.last:'04-12',first:/^\d\d-\d\d$/.test(t.first)?t.first:'10-25'};
+ x.extra=(x.extra||[]).map(e=>({n:String(e.n),s:String(e.s),lo:+e.lo||0,hi:+e.hi||99,type:TYPES[e.type]?e.type:'Perennial',pri:e.pri||{},why:e.why||{}}));
+ x.spots=x.spots.map(s=>({id:sid(s.id),name:String(s.name),sun:SUN[s.sun]?s.sun:''}));
+ DB.length=NB;x.extra.forEach(e=>DB.push(e));
+ x.plants=x.plants.map(p=>({...p,id:sid(p.id),name:String(p.name),type:String(p.type),notes:String(p.notes||''),spots:(p.spots||[]).map(sid),tasks:(p.tasks||[]).filter(t=>TASKS[t]),sp:Number.isInteger(p.sp)&&p.sp>=0&&p.sp<DB.length?p.sp:null,photo:/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]*$/.test(p.photo||'')?p.photo:''}));
+ S=x;S.ver=v;S.dirty=false;persist();render()}
+let SY={st:'off',t:null,busy:false};
+function setSt(s){SY.st=s;const e=document.getElementById('sync');if(e)e.textContent={off:'Sync off (tap to enable)',ok:'Synced',busy:'Syncing...',offline:'Offline: will sync later',err:'Sync problem (tap to retry)'}[s]}
+async function sfetch(method,body){const pw=lsg('garden-pw');if(!pw)return{status:0,j:{}};
+ const r=await fetch('/api/garden',{method,headers:{'content-type':'application/json','x-app-password':pw},body:body?JSON.stringify(body):undefined});
+ return{status:r.status,j:await r.json().catch(()=>({}))}}
+function sched(){if(!lsg('garden-pw'))return;clearTimeout(SY.t);SY.t=setTimeout(push,1500)}
+async function push(){if(SY.busy){sched();return}SY.busy=true;setSt('busy');
+ try{const snap=JSON.stringify(payload()),{status,j}=await sfetch('PUT',{version:S.ver||0,data:JSON.parse(snap)});
+  if(status===200){S.ver=j.version;if(JSON.stringify(payload())===snap)S.dirty=false;else sched();persist();setSt('ok')}
+  else if(status===409){SY.busy=false;return conflict(j)}
+  else if(status===401){lss('garden-pw',null);setSt('off')}
+  else setSt('err')}
+ catch(e){setSt('offline')}
+ SY.busy=false}
+function conflict(j){const keep=confirm("This device has unsynced changes and the cloud copy changed too.\n\nOK = keep this device's version (replaces the cloud copy)\nCancel = use the cloud version (discards this device's unsynced changes)");
+ if(keep){S.ver=j.version;persist();push()}else{adopt(j.data,j.version);setSt('ok')}}
+async function pull(){setSt('busy');
+ try{if(S.ver===undefined){S.ver=0;S.dirty=S.plants.length>0}
+  const{status,j}=await sfetch('GET');
+  if(status===401){lss('garden-pw',null);return setSt('off')}
+  if(status===404||status===0)return setSt('off');
+  if(status!==200)return setSt('err');
+  if(!j.data){S.ver=0;await push();return}
+  if(j.version>(S.ver||0)){if(S.dirty&&JSON.stringify(payload())!==JSON.stringify(j.data))return conflict(j);adopt(j.data,j.version)}
+  else if(S.dirty){await push();return}
+  setSt('ok')}
+ catch(e){setSt('offline')}}
+async function syncTap(){if(!lsg('garden-pw')){const pw=prompt('Enter the app password to turn on sync');if(!pw)return;lss('garden-pw',pw)}
+ await pull();if(SY.st==='off')alert("Couldn't turn on sync. Check the password and that the Neon database is connected in Vercel.")}
+function syncInit(){const on=!!lsg('garden-pw');setSt(on?'busy':'off');if(on)pull();
+ addEventListener('online',()=>{if(S.dirty)sched()});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&lsg('garden-pw')&&!SY.busy&&!S.dirty)pull()})}
+function exportData(){const b=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='garden-backup-'+key(new Date())+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function importData(inp){const f=inp.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!Array.isArray(d.plants)||!Array.isArray(d.spots)||typeof d.set!=='object')throw 0;
+ if(!confirm('Replace everything on this device with this backup?'))return;adopt(d,S.ver||0);save()}catch(e){alert('That file is not a valid garden backup.')}})}
+render();syncInit();
+</script>
+</body>
+</html>

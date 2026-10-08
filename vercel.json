@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/identify.js": { "maxDuration": 30 },
+    "api/care.js": { "maxDuration": 30 }
+  }
+}
