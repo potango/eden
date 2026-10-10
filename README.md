@@ -38,7 +38,7 @@ Flow for a new plant: photo -> Plant.id (1 credit) -> species already known? use
 
 ## Protections
 - API keys stay on the server.
-- Shared password on every request; 20 identifications and 40 care lookups per IP per hour (in-memory, best effort).
+- Shared password on every request; 10 identifications and 40 care lookups per IP per hour (in-memory, best effort).
 - Photos resized in the browser (1024 px) and capped on the server.
 - Model and Plant.id output is validated and trimmed before reaching the page.
 - Species names sent to Claude must match a strict pattern (letters, spaces, a few symbols).

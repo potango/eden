@@ -62,63 +62,63 @@ TASKS.out={n:'Clear out spent plants',a:'first',o:7,c:'#999',tip:'After frost en
 const WHY={heavy:'Hard pruning on schedule builds strong structure and more blooms.',light:"Pruning right after flowering protects next year's buds.",dead:'Removing spent blooms redirects energy into more flowers and healthier roots.',fert:'Feeding as growth starts fuels the whole season.',div:'Dividing prevents crowding, which lowers vigor and invites disease.',cut:'Cleaning up after frost removes pests and disease that overwinter.',lavp:'Lavender needs pruning about 6 weeks before first frost so new growth hardens off before winter. Cut back by roughly a third, never into old wood.',out:'Removing spent annuals keeps disease from carrying over.'};
 const K={h:'heavy',l:'light',d:'dead',f:'fert',v:'div',c:'cut',p:'lavp'},LV=['','Optional','Recommended','Critical'];
 // name|scientific|min zone|max zone|type|tasks with priority 1-3 (lo=0 means true annual)
-const DB=`Rose|Rosa spp.|4|9|Rose|h3,d2,f2,c1
-Knock Out Rose|Rosa 'Radrazz'|4|9|Rose|h3,d1,f2
-Bigleaf Hydrangea|Hydrangea macrophylla|6|9|Shrub|l2,f1
-Panicle Hydrangea|Hydrangea paniculata|3|8|Shrub|h3,f1
-Oakleaf Hydrangea|Hydrangea quercifolia|5|9|Shrub|l2
-Lilac|Syringa vulgaris|3|7|Shrub|l3
-Forsythia|Forsythia x intermedia|5|8|Shrub|l3
-Azalea|Rhododendron spp.|5|9|Shrub|l2,f1
-Boxwood|Buxus sempervirens|5|9|Shrub|l2
-Butterfly Bush|Buddleja davidii|5|9|Shrub|h3,d2
-Spirea|Spiraea japonica|3|8|Shrub|h2,d1
-Lantana|Lantana camara|8|11|Shrub|h2
-Wisteria|Wisteria sinensis|5|9|Shrub|l3,h2
-Crape Myrtle|Lagerstroemia indica|6|9|Tree|h2,f1
-Japanese Maple|Acer palmatum|5|8|Tree|l2
-Flowering Dogwood|Cornus florida|5|9|Tree|l1
-Apple|Malus domestica|3|8|Tree|h3,f2
-Peony|Paeonia lactiflora|3|8|Perennial|c3,d1,v1
-Daylily|Hemerocallis spp.|3|10|Perennial|d2,v2,c1
-Hosta|Hosta spp.|3|9|Perennial|c2,v2
-Purple Coneflower|Echinacea purpurea|3|9|Perennial|d2,c1,v1
-Black-eyed Susan|Rudbeckia fulgida|3|9|Perennial|d2,c1,v2
-Russian Sage|Perovskia atriplicifolia|4|9|Perennial|h3
-Lavender|Lavandula angustifolia|5|9|Perennial|p3,d1
-Sedum|Hylotelephium 'Autumn Joy'|3|9|Perennial|h2,v1
-Meadow Sage|Salvia nemorosa|4|8|Perennial|d3,c1
-Garden Phlox|Phlox paniculata|4|8|Perennial|d2,v2,c1
-Catmint|Nepeta x faassenii|3|8|Perennial|d3
-Bearded Iris|Iris germanica|3|9|Perennial|v3,c1
-Maiden Grass|Miscanthus sinensis|4|9|Perennial|h3
-Hellebore|Helleborus orientalis|4|9|Perennial|l2
-Bee Balm|Monarda didyma|3|9|Perennial|d2,v2
-Astilbe|Astilbe x arendsii|3|8|Perennial|c1,v2
-Clematis|Clematis spp.|4|9|Perennial|l3
-Dahlia|Dahlia spp.|8|11|Perennial|d3,f2
-Canna Lily|Canna x generalis|7|11|Perennial|c2
-Geranium (Pelargonium)|Pelargonium x hortorum|10|11|Perennial|d3,f2
-Coleus|Coleus scutellarioides|10|11|Perennial|l3
-Daffodil|Narcissus spp.|3|9|Bulb|c1
-Tulip|Tulipa spp.|3|8|Bulb|d2,c1
-Mint|Mentha spp.|3|9|Herb|l2,c1
-Rosemary|Salvia rosmarinus|7|10|Herb|l2
-Thyme|Thymus vulgaris|4|9|Herb|l2
-Petunia|Petunia x hybrida|10|11|Annual|d3,f3
-Marigold|Tagetes spp.|0|99|Annual|d3
-Zinnia|Zinnia elegans|0|99|Annual|d3,f1
-Impatiens|Impatiens walleriana|0|99|Annual|d2,f2
-Cosmos|Cosmos bipinnatus|0|99|Annual|d2
-Sunflower|Helianthus annuus|0|99|Annual|f1
-Tomato|Solanum lycopersicum|0|99|Annual|f3,l2
-Basil|Ocimum basilicum|0|99|Annual|l3`.split('\n').map(r=>{const a=r.split('|'),pri={};a[5].split(',').forEach(x=>pri[K[x[0]]]=+x[1]);return{n:a[0],s:a[1],lo:+a[2],hi:+a[3],type:a[4],pri}});
+const DB=`Rose|Rosa spp.|4|9|Rose|h3,d2,f2,c1|Full sun, good air flow, rich soil. Water deeply at the base to limit leaf disease.
+Knock Out Rose|Rosa 'Radrazz'|4|9|Rose|h3,d1,f2|Full sun, tolerant of most soils. Low maintenance; water deeply during dry spells.
+Bigleaf Hydrangea|Hydrangea macrophylla|6|9|Shrub|l2,f1|Morning sun, afternoon shade, evenly moist soil. Avoid hard pruning; buds form on old wood.
+Panicle Hydrangea|Hydrangea paniculata|3|8|Shrub|h3,f1|Full sun to part shade. Blooms on new wood, so late-winter pruning is safe.
+Oakleaf Hydrangea|Hydrangea quercifolia|5|9|Shrub|l2|Part shade, well-drained soil. Prune lightly after flowering; tolerates dry spells once established.
+Lilac|Syringa vulgaris|3|7|Shrub|l3|Full sun, neutral to alkaline soil. Prune right after flowering to protect next year's buds.
+Forsythia|Forsythia x intermedia|5|8|Shrub|l3|Full sun, adaptable. Prune right after bloom; renew by cutting a few old stems to the ground.
+Azalea|Rhododendron spp.|5|9|Shrub|l2,f1|Part shade, acidic well-drained soil. Mulch to keep roots cool; minimal pruning after bloom.
+Boxwood|Buxus sempervirens|5|9|Shrub|l2|Sun to part shade, well-drained soil. Shear lightly in late spring and avoid wet feet.
+Butterfly Bush|Buddleja davidii|5|9|Shrub|h3,d2|Full sun, well-drained soil. Cut back hard in late winter; deadhead to extend blooming.
+Spirea|Spiraea japonica|3|8|Shrub|h2,d1|Full sun, adaptable. Shear after bloom for a tidy shape; late-winter renewal pruning works well.
+Lantana|Lantana camara|8|11|Shrub|h2|Full sun and heat. Drought tolerant once established; tender in cold winters.
+Wisteria|Wisteria sinensis|5|9|Shrub|l3,h2|Full sun, sturdy support. Prune in summer and winter to encourage flowering.
+Crape Myrtle|Lagerstroemia indica|6|9|Tree|h2,f1|Full sun. Avoid heavy topping; prune lightly in late winter for shape.
+Japanese Maple|Acer palmatum|5|8|Tree|l2|Part shade with protection from hot afternoon sun. Keep soil moist; prune lightly while dormant.
+Flowering Dogwood|Cornus florida|5|9|Tree|l1|Part shade, moist well-drained acidic soil. Mulch, water in drought, and avoid trunk injury.
+Apple|Malus domestica|3|8|Tree|h3,f2|Full sun, good air flow. Prune in late winter, thin fruit, and clean up fallen fruit.
+Peony|Paeonia lactiflora|3|8|Perennial|c3,d1,v1|Full sun, plant crowns shallow. Cut back in fall and avoid moving established plants.
+Daylily|Hemerocallis spp.|3|10|Perennial|d2,v2,c1|Full sun to part shade, very adaptable. Divide every few years when clumps thin out.
+Hosta|Hosta spp.|3|9|Perennial|c2,v2|Shade to part shade, moist soil. Watch for slugs; divide in early fall when crowded.
+Purple Coneflower|Echinacea purpurea|3|9|Perennial|d2,c1,v1|Full sun, well-drained soil. Drought tolerant; leave late seed heads for birds if you like.
+Black-eyed Susan|Rudbeckia fulgida|3|9|Perennial|d2,c1,v2|Full sun, average soil. Deadhead for more blooms or leave seed heads for finches.
+Russian Sage|Perovskia atriplicifolia|4|9|Perennial|h3|Full sun, lean well-drained soil. Cut back hard in late winter and avoid overwatering.
+Lavender|Lavandula angustifolia|5|9|Perennial|p3,d1|Full sun, sharp drainage, low fertility. Prune before frost and avoid cutting into old wood.
+Sedum|Hylotelephium 'Autumn Joy'|3|9|Perennial|h2,v1|Full sun, drought tolerant. Cut back in late winter; pinch in early summer for sturdier stems.
+Meadow Sage|Salvia nemorosa|4|8|Perennial|d3,c1|Full sun, well-drained soil. Shear after the first flush to trigger a second bloom.
+Garden Phlox|Phlox paniculata|4|8|Perennial|d2,v2,c1|Full sun with good air flow to limit mildew. Deadhead and divide every few years.
+Catmint|Nepeta x faassenii|3|8|Perennial|d3|Full sun, tolerates dry soil. Shear after bloom for a second flush.
+Bearded Iris|Iris germanica|3|9|Perennial|v3,c1|Full sun, plant rhizomes shallow. Divide every 3-4 years in late summer.
+Maiden Grass|Miscanthus sinensis|4|9|Perennial|h3|Full sun. Cut to a few inches in late winter before new growth starts.
+Hellebore|Helleborus orientalis|4|9|Perennial|l2|Part to full shade, rich soil. Remove tattered old leaves in late winter as flowers emerge.
+Bee Balm|Monarda didyma|3|9|Perennial|d2,v2|Full sun, moist soil, good air flow to limit mildew. Divide every 2-3 years.
+Astilbe|Astilbe x arendsii|3|8|Perennial|c1,v2|Part shade, consistently moist soil. Divide every few years and remove spent plumes if desired.
+Clematis|Clematis spp.|4|9|Perennial|l3|Roots in shade, top in sun. Check your variety's pruning group before cutting.
+Dahlia|Dahlia spp.|8|11|Perennial|d3,f2|Full sun, rich soil. Stake early; lift tubers in cold zones after frost.
+Canna Lily|Canna x generalis|7|11|Perennial|c2|Full sun, moist rich soil. Lift rhizomes in cold zones after frost.
+Geranium (Pelargonium)|Pelargonium x hortorum|10|11|Perennial|d3,f2|Full sun to light shade, well-drained soil. Pinch tips and deadhead for more blooms.
+Coleus|Coleus scutellarioides|10|11|Perennial|l3|Part shade to sun. Pinch tips often to keep plants bushy; tender in cool weather.
+Daffodil|Narcissus spp.|3|9|Bulb|c1|Full sun to part shade. Let foliage yellow naturally before removing it.
+Tulip|Tulipa spp.|3|8|Bulb|d2,c1|Full sun, well-drained soil. Remove spent blooms but leave foliage until it yellows.
+Mint|Mentha spp.|3|9|Herb|l2,c1|Part sun, moist soil. Contain it in a pot because it spreads aggressively.
+Rosemary|Salvia rosmarinus|7|10|Herb|l2|Full sun, sharp drainage. Prune lightly after flowering and protect from hard freezes.
+Thyme|Thymus vulgaris|4|9|Herb|l2|Full sun, well-drained lean soil. Trim after flowering to keep plants compact.
+Petunia|Petunia x hybrida|10|11|Annual|d3,f3|Full sun, regular feeding. Trim leggy stems midsummer to refresh blooming.
+Marigold|Tagetes spp.|0|99|Annual|d3|Full sun, average soil. Deadhead for continuous blooms.
+Zinnia|Zinnia elegans|0|99|Annual|d3,f1|Full sun, good air flow to limit mildew. Cut flowers often to encourage more.
+Impatiens|Impatiens walleriana|0|99|Annual|d2,f2|Shade to part shade, evenly moist soil. Pinch back leggy stems.
+Cosmos|Cosmos bipinnatus|0|99|Annual|d2|Full sun, lean soil. Too much fertilizer reduces flowers; deadhead to extend bloom.
+Sunflower|Helianthus annuus|0|99|Annual|f1|Full sun, deep watering. Stake tall varieties and leave seed heads for birds.
+Tomato|Solanum lycopersicum|0|99|Annual|f3,l2|Full sun, deep consistent watering. Stake, mulch, and remove lower leaves touching soil.
+Basil|Ocimum basilicum|0|99|Annual|l3|Full sun, warm weather, moist soil. Pinch flower buds to keep leaves coming.`.split('\n').map(r=>{const a=r.split('|'),pri={};a[5].split(',').forEach(x=>pri[K[x[0]]]=+x[1]);return{n:a[0],s:a[1],lo:+a[2],hi:+a[3],type:a[4],pri,note:a[6]||''}});
 function stat(sp){const z=S.set.zone;if(sp.lo===0)return{k:'annual',t:'Annual: replant each year'};if(z<sp.lo)return{k:'annual',t:`Grown as an annual in zone ${z} (hardy to zone ${sp.lo})`};if(z>sp.hi)return{k:'warn',t:`Perennial, but zone ${z} may be too warm (best to zone ${sp.hi})`};return{k:'peren',t:`Perennial in zone ${z}`+(z===sp.lo?' (borderline: mulch in winter)':'')}}
 function eff(p){const sp=DB[p.sp];if(sp&&stat(sp).k==='annual'){const t=p.tasks.filter(x=>['dead','fert','light'].includes(x));t.push('out');return t}return p.tasks}
 const pr=e=>(e.p.pri&&e.p.pri[e.t])||(e.t==='out'?1:2);
 function focus(){const t0=new Date(today.getFullYear(),today.getMonth(),today.getDate()),y=t0.getFullYear();
  const ev=[...events(y),...events(y+1)].filter(e=>!S.done[ek(e)]&&e.d>=addDays(t0,-30)&&e.d<=addDays(t0,30)).map(e=>{const dd=Math.round((e.d-t0)/864e5);return{...e,dd,sc:pr(e)*10+(dd<0?30:dd<=7?20:10)}}).sort((a,b)=>b.sc-a.sc||a.d-b.d).slice(0,6);
- const rows=ev.map(e=>{const w=e.dd<0?`overdue by ${-e.dd} day${e.dd===-1?'':'s'}`:e.dd===0?'due today':`in ${e.dd} days`;return `<div class="ev"><input type="checkbox" onchange="tog('${ek(e)}')"><span><b>${esc(e.p.name)}</b>: ${TASKS[e.t].n}<br><small class="mute">${LV[pr(e)]} · ${w}<br>${esc((DB[e.p.sp]&&DB[e.p.sp].why&&DB[e.p.sp].why[e.t])||WHY[e.t])}</small></span></div>`}).join('');
+ const rows=ev.map(e=>{const w=e.dd<0?`overdue by ${-e.dd} day${e.dd===-1?'':'s'}`:e.dd===0?'due today':`in ${e.dd} days`;return `<div class="ev"><input type="checkbox" onchange="tog('${ek(e)}')">${thumb(e.p)}<span>${nmHtml(e.p)}: ${TASKS[e.t].n}<br><small class="mute">${LV[pr(e)]} · ${w}<br>${esc((DB[e.p.sp]&&DB[e.p.sp].why&&DB[e.p.sp].why[e.t])||WHY[e.t])}</small></span></div>`}).join('');
  return `<div class="card"><b>Focus for the next 30 days</b>${rows||'<p class="mute">You\'re all caught up. 🌱</p>'}</div>`}
 const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
 let S={plants:[],done:{},set:{zone:7,south:false,last:'04-12',first:'10-25'}};
@@ -129,7 +129,9 @@ const NB=DB.length;S.spots=S.spots||[];S.extra=S.extra||[];S.extra.forEach(x=>DB
 for(const p of S.plants){const sp=DB[p.sp];if(sp&&sp.n==='Lavender'){const i=p.tasks.indexOf('light');if(i>=0)p.tasks[i]='lavp';if(p.pri&&p.pri.light!=null){p.pri.lavp=3;delete p.pri.light}}}
 for(const p of S.plants)if(p.loc&&!p.spot&&!Array.isArray(p.spots)){let s=S.spots.find(x=>x.name.toLowerCase()===p.loc.toLowerCase());if(!s){s={id:'s'+Math.random().toString(36).slice(2,8),name:p.loc,sun:''};S.spots.push(s)}p.spot=s.id}
 for(const p of S.plants){if(!Array.isArray(p.spots))p.spots=p.spot?[p.spot]:[];delete p.spot;delete p.loc}
-const persist=()=>{try{localStorage.setItem('garden-v1',JSON.stringify(S))}catch(e){}};
+for(const p of S.plants)if(p.sci===undefined)p.sci=(DB[p.sp]&&DB[p.sp].s)||'';
+let warned=false;
+const persist=()=>{try{localStorage.setItem('garden-v1',JSON.stringify(S))}catch(e){if(!warned){warned=true;alert('Browser storage is full, so recent changes may not be saved on this device. Download a backup from Settings.')}}};
 const save=()=>{S.dirty=true;persist();sched()};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const today=new Date();let cur={y:today.getFullYear(),m:today.getMonth()},tab='cal',draft={type:'Perennial',tasks:TYPES.Perennial.slice(),name:'',sp:null,pri:{},spots:[]};
@@ -161,7 +163,7 @@ function vCal(){
  for(let i=0;i<first.getDay();i++)g+='<div></div>';
  for(let d=1;d<=n;d++){const es=ev.filter(e=>e.d.getDate()===d);const isT=key(new Date(cur.y,cur.m,d))===key(today);
   g+=`<div class="d ${isT?'today':''}">${d}<div class="dots">${es.slice(0,6).map(e=>`<i class="dot" style="background:${TASKS[e.t].c}"></i>`).join('')}</div></div>`}
- const list=ev.length?ev.map(e=>{const k=ek(e),dn=S.done[k];return `<div class="ev ${dn?'done':''}"><input type="checkbox" ${dn?'checked':''} onchange="tog('${k}')"><i class="dot" style="background:${TASKS[e.t].c}"></i><span><b>${esc(e.p.name)}</b>: ${TASKS[e.t].n}<br><small class="mute">${e.d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</small></span></div>`}).join(''):'<p class="mute">Nothing scheduled this month.</p>';
+ const list=ev.length?ev.map(e=>{const k=ek(e),dn=S.done[k];return `<div class="ev ${dn?'done':''}"><input type="checkbox" ${dn?'checked':''} onchange="tog('${k}')"><i class="dot" style="background:${TASKS[e.t].c}"></i>${thumb(e.p)}<span>${nmHtml(e.p)}: ${TASKS[e.t].n}<br><small class="mute">${e.d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</small></span></div>`}).join(''):'<p class="mute">Nothing scheduled this month.</p>';
  return `${focus()}<div class="card"><div class="row"><button class="btn ghost" onclick="mv(-1)">‹</button><b>${MON[cur.m]} ${cur.y}</b><button class="btn ghost" onclick="mv(1)">›</button></div><div class="cal" style="margin-top:10px">${g}</div></div>
  <div class="card"><b>Tasks this month</b>${list}</div>
  <p class="mute">Dates are estimates from your frost dates; adjust them in Settings.</p>`;
@@ -178,7 +180,9 @@ function vPlants(){
  <label>Care tasks to track</label>${chips(draft.tasks,'dt')}
  <label>Notes</label><textarea id="po" rows="2">${esc(draft.notes||'')}</textarea>
  <button class="btn" onclick="addP()">Add plant</button></div>`;
- const list=S.plants.map(p=>`<div class="card"><div class="row"><div>${p.photo?`<img src="${p.photo}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;float:left;margin-right:10px">`:''}<b>${esc(p.name)}</b><div class="mute">${esc(p.type)}</div><div style="margin-top:6px">${spotChecks(p.spots,"tsp.bind(null,'"+p.id+"')")}</div>${DB[p.sp]?`<div class="mute"><i>${esc(DB[p.sp].s)}</i> · ${stat(DB[p.sp]).t}</div>`:''}</div><button class="x" onclick="delP('${p.id}')" title="Remove">✕</button></div>${p.notes?`<p class="mute">${esc(p.notes)}</p>`:''}${chips(p.tasks,"tp.bind(null,'"+p.id+"')")}</div>`).join('');
+ const list=S.plants.map(p=>{
+  if(EDIT===p.id)return `<div class="card"><b>Edit plant</b><label>Common name</label><input id="en" value="${esc(p.name)}"><label>Scientific name</label><input id="es" value="${esc(p.sci||'')}" placeholder="optional"><label>Notes</label><textarea id="eo" rows="5">${esc(p.notes||'')}</textarea><button class="btn" onclick="saveP()">Save</button> <button class="btn ghost" onclick="EDIT=null;render()">Cancel</button></div>`;
+  return `<div class="card"><div class="row"><div style="display:flex;gap:10px;align-items:center">${p.photo?`<img src="${p.photo}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex:none">`:''}<div>${nmHtml(p)}<div class="mute">${esc(p.type)}</div>${DB[p.sp]?`<div class="mute">${stat(DB[p.sp]).t}</div>`:''}</div></div><div style="white-space:nowrap"><button class="x" onclick="editP('${p.id}')" title="Edit">✎</button><button class="x" onclick="delP('${p.id}')" title="Remove">✕</button></div></div><div style="margin-top:6px">${spotChecks(p.spots,"tsp.bind(null,'"+p.id+"')")}</div>${p.notes?`<p class="mute" style="white-space:pre-wrap">${esc(p.notes)}</p>`:''}${chips(p.tasks,"tp.bind(null,'"+p.id+"')")}</div>`}).join('');
  return idCard()+form+(list||'');
 }
 function dt(k){const a=draft.tasks,i=a.indexOf(k);i<0?a.push(k):a.splice(i,1);keep();render()}
@@ -188,15 +192,26 @@ const spotChecks=(sel,fn)=>S.spots.length?`<div class="chips">${S.spots.map(x=>`
 function dsp(id){const a=draft.spots,i=a.indexOf(id);i<0?a.push(id):a.splice(i,1)}
 function tsp(pid,sid){const p=S.plants.find(x=>x.id===pid),i=p.spots.indexOf(sid);i<0?p.spots.push(sid):p.spots.splice(i,1);save()}
 function vSpots(){
- const list=S.spots.map(s=>{const n=S.plants.filter(p=>p.spots.includes(s.id));return `<div class="card"><div class="row"><b>${esc(s.name)}</b><button class="x" onclick="delS('${s.id}')" title="Remove">✕</button></div><label>Sunlight</label><select onchange="setSun('${s.id}',this.value)">${sunOpts(s.sun)}</select><p class="mute">${n.length?n.map(p=>esc(p.name)).join(', '):'No plants here yet'}</p></div>`}).join('');
+ const list=S.spots.map(s=>{const n=S.plants.filter(p=>p.spots.includes(s.id));return `<div class="card"><div class="row"><b>${esc(s.name)}</b><button class="x" onclick="delS('${s.id}')" title="Remove">✕</button></div><label>Sunlight</label><select onchange="setSun('${s.id}',this.value)">${sunOpts(s.sun)}</select><p class="mute">${n.length?n.map(p=>esc(nmText(p))).join(', '):'No plants here yet'}</p></div>`}).join('');
  return `<div class="card"><b>Add a garden spot</b><label>Name</label><input id="sn" placeholder="e.g. Back fence bed"><label>Sunlight</label><select id="ss">${sunOpts('')}</select><button class="btn" onclick="addS()">Add spot</button></div>${list}<p class="mute">Coming later: plant recommendations for each spot based on its sunlight and the traits you want.</p>`}
 function addS(){const n=document.getElementById('sn').value.trim();if(!n){document.getElementById('sn').focus();return}S.spots.push({id:'s'+Date.now(),name:n,sun:document.getElementById('ss').value});save();render()}
 function setSun(id,v){S.spots.find(s=>s.id===id).sun=v;save();render()}
 function delS(id){if(confirm('Remove this spot? Plants in it will become unassigned.')){S.spots=S.spots.filter(s=>s.id!==id);S.plants.forEach(p=>{p.spots=p.spots.filter(x=>x!==id)});draft.spots=draft.spots.filter(x=>x!==id);save();render()}}
 const API_URL='/api/identify';
 const lsg=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lss=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):'';
+const nmHtml=p=>p.sci?`<b><i>${esc(p.sci)}</i></b>${p.name&&p.name!==p.sci?' <span class="mute">'+esc(p.name)+'</span>':''}`:`<b>${esc(p.name)}</b>`;
+const nmText=p=>p.sci&&p.name&&p.name!==p.sci?`${p.sci} (${p.name})`:(p.sci||p.name);
+const thumb=p=>p.photo?`<img src="${p.photo}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex:none">`:'';
+const same=(a,b)=>{a=(a||'').toLowerCase();b=(b||'').toLowerCase();if(!a||!b)return false;return a===b||((/spp\./.test(a)||/spp\./.test(b))&&a.split(' ')[0]===b.split(' ')[0])};
+const hash=s=>{let h=0;for(let i=0;i<s.length;i+=7)h=(h*31+s.charCodeAt(i))|0;return s.length+':'+h};
+const IDC={};let EDIT=null;
+function editP(id){EDIT=id;render()}
+function saveP(){const p=S.plants.find(x=>x.id===EDIT);if(p){const g=i=>document.getElementById(i).value.trim();p.name=g('en')||p.name;p.sci=g('es');p.notes=document.getElementById('eo').value.trim();save()}EDIT=null;render()}
 let ID={busy:false,res:null,err:'',thumb:''};
-function shrink(file,max,q){return new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(file);im.onload=()=>{const r=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',q))};im.onerror=()=>no(new Error('Could not read that image'));im.src=u})}
+function shrink(file,max,q){return new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(file),bad=()=>no(new Error('Could not process that photo.'));
+ im.onload=()=>{try{const r=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);c.getContext('2d').drawImage(im,0,0,c.width,c.height);const d=c.toDataURL('image/jpeg',q);URL.revokeObjectURL(u);d.startsWith('data:image/jpeg')?ok(d):bad()}catch(e){bad()}};
+ im.onerror=()=>no(new Error("This photo format could not be read. Try a JPEG, or set your phone camera to 'Most Compatible'."));im.src=u})}
 let HEALTH=false;
 async function api(path,body){const pw=lsg('garden-pw')||prompt('Enter the app password');if(!pw)throw new Error('Password needed');
  const r=await fetch(path,{method:'POST',headers:{'content-type':'application/json','x-app-password':pw},body:JSON.stringify(body)});
@@ -205,15 +220,20 @@ async function api(path,body){const pw=lsg('garden-pw')||prompt('Enter the app p
  if(!r.ok)throw new Error(j.error||'Request failed. Try again in a moment.');
  lss('garden-pw',pw);return j}
 const dbIdx=sci=>{const l=sci.toLowerCase(),g=l.split(' ')[0];return DB.findIndex(s=>s.s.toLowerCase()===l||(/spp\./.test(s.s)&&s.s.toLowerCase().startsWith(g+' ')))};
+async function resolveCare(j){const i=dbIdx(j.scientific);
+ if(i>=0){const e=DB[i];j.tasks=Object.entries(e.pri).map(([key,priority])=>({key,priority,why:(e.why&&e.why[key])||WHY[key]||''}));j.type=e.type;j.hardiness={min:e.lo,max:e.hi};j.notes=e.note||'';j.toxicity='';return}
+ ID.msg='Looking up care...';render();
+ try{const c=await api('/api/care',{scientific:j.scientific,common:j.common,zone:S.set.zone});Object.assign(j,{type:c.type,hardiness:c.hardiness,tasks:c.tasks,notes:c.notes,toxicity:c.toxicity})}
+ catch(e){j.tasks=[];j.type='Perennial';j.notes='';j.toxicity='';j.careFailed=true}}
 async function identify(inp){const f=inp.files[0];if(!f)return;ID={busy:true,res:null,err:'',thumb:'',msg:'Identifying...'};render();
  try{const big=await shrink(f,1024,.8);ID.thumb=await shrink(f,320,.7);
-  const j=await api('/api/identify',{image:big.split(',')[1],zone:S.set.zone,health:HEALTH});
-  if(j.identified&&j.needsCare){const i=dbIdx(j.scientific);
-   if(i>=0){const e=DB[i];j.tasks=Object.entries(e.pri).map(([key,priority])=>({key,priority,why:(e.why&&e.why[key])||WHY[key]}));j.type=e.type;j.hardiness={min:e.lo,max:e.hi};j.notes='';j.toxicity=''}
-   else{ID.msg='Looking up care...';render();
-    try{{const c=await api('/api/care',{scientific:j.scientific,common:j.common,zone:S.set.zone});Object.assign(j,{type:c.type,hardiness:c.hardiness,tasks:c.tasks,notes:c.notes,toxicity:c.toxicity})}}
-    catch(e){j.tasks=[];j.type='Perennial';j.notes='Care details unavailable. Adjust tasks by hand.';j.toxicity=''}}}
-  ID.res=j}catch(e){ID.err=e.message}
+  const hk=hash(big)+(HEALTH?'h':'');
+  if(IDC[hk])ID.res=JSON.parse(JSON.stringify(IDC[hk]));
+  else{const j=await api('/api/identify',{image:big.split(',')[1],zone:S.set.zone,health:HEALTH});
+   if(j.identified&&j.needsCare)await resolveCare(j);
+   if(j.identified)IDC[hk]=JSON.parse(JSON.stringify(j));
+   ID.res=j}}
+ catch(e){ID.err=e.message}
  ID.busy=false;render()}
 let LK={busy:false,msg:''};
 const lkHtml=()=>draft.sp==null&&(draft.name||'').trim().length>=3?`<button class="btn ghost" ${LK.busy?'disabled':''} onclick="lookupCare()">${LK.busy?'Looking up...':'Look up care for this name'}</button>${LK.msg?`<div class="mute">${esc(LK.msg)}</div>`:''}`:'';
@@ -229,27 +249,45 @@ async function lookupCare(){const n=(draft.name||'').trim();LK={busy:true,msg:''
  catch(e){LK={busy:false,msg:e.message};lkBtn()}}
 const hl=r=>r.health?`<p class="mute"><b>Health check:</b> ${r.health.issues.length?r.health.issues.map(x=>esc(x.name)+' ('+x.probability+'%)').join(', '):(r.health.healthy?'Looks healthy.':'No clear issue found.')}</p>`:'';
 function idCard(){const r=ID.res;let out='';
- if(r&&!r.identified)out='<p>Could not identify that plant. Try a clear, close photo of a leaf or flower.</p>';
+ const img=(p,n)=>p?`<img src="${p}" alt="" style="width:${n}px;height:${n}px;object-fit:cover;border-radius:8px;flex:none">`:'';
+ if(ID.done&&!r&&!ID.added)out=`<p><b>${esc(ID.done)}</b></p>`;
+ if(ID.added){const p=S.plants.find(x=>x.id===ID.added);
+  if(p)out=`<div class="ev">${img(p.photo,56)}<span>Added ${nmHtml(p)}</span></div><p class="mute">Where is it growing?</p>${spotChecks(p.spots||[],"tsp.bind(null,'"+p.id+"')")}<button class="btn" onclick="ID.added=null;render()">Done</button> <button class="btn ghost" onclick="undoAdd()">Undo</button>`}
+ else if(r&&ID.dup){const m=S.plants.filter(p=>ID.dup.includes(p.id));
+  out=`<p><b>You already have ${m.length>1?'plants of this species':'this plant'}.</b></p>${m.map(p=>`<div class="ev">${thumb(p)}<span>${nmHtml(p)}<br><small class="mute">${esc(p.spots.map(id=>(S.spots.find(s=>s.id===id)||{}).name).filter(Boolean).join(', ')||'No spot set')}</small></span><button class="btn ghost" style="margin:0" onclick="dupPhoto('${p.id}')">Replace photo</button></div>`).join('')}<button class="btn" onclick="ID.forceNew=true;ID.dup=null;useId()">Add as a new plant</button> <button class="btn ghost" onclick="ID.dup=null;render()">Back</button>`}
+ else if(r&&!r.identified)out='<p>Could not identify that plant. Try a clear, close photo of a leaf or flower.</p>';
  else if(r){const lv=['','Optional','Recommended','Critical'];
-  out=`<div class="ev">${ID.thumb?`<img src="${ID.thumb}" alt="" style="width:72px;height:72px;object-fit:cover;border-radius:8px">`:''}<span><b>${esc(r.common)}</b> <i>${esc(r.scientific)}</i><br><small class="mute">Confidence: ${esc(r.confidence)}${r.probability?' ('+r.probability+'%)':''}${r.source==='plantid'?' · Identified with Plant.id':''}</small></span></div>
-  ${r.alternatives.length?`<p class="mute">Could also be:</p><div class="chips">${r.alternatives.map(a=>`<span class="chip" onclick="tryAlt('${esc(a.common).replace(/'/g,'')}')">${esc(a.common)}</span>`).join('')}</div>`:''}
-  ${r.tasks.map(t=>`<div class="ev"><i class="dot" style="background:${TASKS[t.key].c}"></i><span><b>${TASKS[t.key].n}</b> <small class="mute">${lv[t.priority]}</small><br><small class="mute">${esc(t.why)}</small></span></div>`).join('')}
+  out=`<div class="ev">${img(ID.thumb,72)}<span><b><i>${esc(r.scientific)}</i></b>${r.common?'<br>'+esc(cap(r.common)):''}<br><small class="mute">Confidence: ${esc(r.confidence)}${r.probability?' ('+r.probability+'%)':''}${r.source==='plantid'?' · Identified with Plant.id':''}</small></span></div>
+  ${r.confidence==='low'?'<p class="mute">Low confidence. A clearer photo of a leaf or flower may help.</p>':''}
+  ${(r.alternatives||[]).length?`<p class="mute">Could also be (tap to switch, no extra credit):</p><div class="chips">${(r.alternatives||[]).map((a,k)=>`<span class="chip" onclick="useAlt(${k})"><i>${esc(a.scientific)}</i>${a.common?' · '+esc(cap(a.common)):''}</span>`).join('')}</div>`:''}
+  ${r.careFailed?'<p class="mute">Care details could not be looked up, so generic tasks for this plant type will be used.</p>':''}
+  ${(r.tasks||[]).map(t=>`<div class="ev"><i class="dot" style="background:${TASKS[t.key].c}"></i><span><b>${TASKS[t.key].n}</b> <small class="mute">${lv[t.priority]}</small><br><small class="mute">${esc(t.why)}</small></span></div>`).join('')}
   ${r.toxicity?`<p class="mute"><b>Safety:</b> ${esc(r.toxicity)}</p>`:''}
-  ${hl(r)}<button class="btn" onclick="useId()">Add to my plants</button> <button class="btn ghost" onclick="ID.res=null;render()">Discard</button>`}
+  ${hl(r)}<button class="btn" onclick="useId()">${r.confidence==='low'?'Add anyway':'Add to my plants'}</button> <button class="btn ghost" onclick="ID.res=null;render()">Discard</button>`}
  return `<div class="card"><b>Identify from a photo</b><p class="mute">This is a best guess. Confirm before eating or handling any plant.</p>${ID.busy?'<p>'+esc(ID.msg)+'</p>':`<label class="btn" style="display:inline-block;cursor:pointer">Take or choose a photo<input type="file" accept="image/*" hidden onchange="identify(this)"></label><label class="mute" style="display:block"><input type="checkbox" style="width:auto" ${HEALTH?'checked':''} onchange="HEALTH=this.checked"> Also check plant health (Plant.id only, uses an extra credit)</label>`}${ID.err?`<p style="color:#b5523b">${esc(ID.err)}</p>`:''}${out}</div>`}
-function tryAlt(n){ID.res=null;draft.name=n;draft.sp=null;render();ac(n)}
-function useId(){const r=ID.res;let i=dbIdx(r.scientific);
- if(i<0&&r.tasks.length){const e={n:r.common,s:r.scientific,lo:r.hardiness.min,hi:r.hardiness.max,type:r.type,pri:{},why:{}};r.tasks.forEach(t=>{e.pri[t.key]=t.priority;e.why[t.key]=t.why});DB.push(e);S.extra.push(e);i=DB.length-1}
- if(i>=0){draft.name=r.common||DB[i].n;draft.sp=i;draft.type=DB[i].type;draft.tasks=Object.keys(DB[i].pri);draft.pri=DB[i].pri}
- else{draft.name=r.common;draft.sp=null;draft.type=r.type||'Perennial';draft.tasks=TYPES[draft.type].slice();draft.pri={}}
- draft.photo=ID.thumb;draft.notes=[r.notes,r.toxicity?'Safety: '+r.toxicity:''].filter(Boolean).join('\n');ID.res=null;save();render()}
+async function useAlt(k){const r=ID.res,a=r&&(r.alternatives||[])[k];if(!a)return;ID.busy=true;ID.msg='Switching...';render();
+ const rest=(r.alternatives||[]).filter((_,x)=>x!==k);rest.unshift({common:r.common,scientific:r.scientific});
+ const j={identified:true,source:r.source,confidence:'chosen by you',common:a.common,scientific:a.scientific,alternatives:rest};
+ try{await resolveCare(j);ID.res=j}catch(e){ID.err=e.message}
+ ID.busy=false;render()}
+function useId(){const r=ID.res;
+ if(!ID.forceNew){const m=S.plants.filter(p=>same(p.sci,r.scientific));if(m.length){ID.dup=m.map(p=>p.id);render();return}}
+ ID.forceNew=false;
+ let i=dbIdx(r.scientific);
+ if(i<0&&(r.tasks||[]).length){const e={n:cap(r.common)||r.scientific,s:r.scientific,lo:r.hardiness.min,hi:r.hardiness.max,type:r.type,pri:{},why:{}};r.tasks.forEach(t=>{e.pri[t.key]=t.priority;e.why[t.key]=t.why});DB.push(e);S.extra.push(e);i=DB.length-1}
+ const sp=i>=0?DB[i]:null,type=sp?sp.type:(r.type||'Perennial');
+ const notes=[r.notes||(sp&&sp.note)||'',r.toxicity?'Safety: '+r.toxicity:''].filter(Boolean).join('\n');
+ const p={id:'p'+Date.now()+Math.random().toString(36).slice(2,5),name:cap(r.common)||(sp&&sp.n)||r.scientific,sci:r.scientific,type,spots:[],notes,tasks:sp?Object.keys(sp.pri):TYPES[type].slice(),sp:i>=0?i:null,pri:sp?sp.pri:{},photo:ID.thumb||''};
+ S.plants.push(p);ID.res=null;ID.dup=null;ID.done='';ID.added=p.id;save();render()}
+function dupPhoto(id){const p=S.plants.find(x=>x.id===id);if(p&&ID.thumb){p.photo=ID.thumb;save()}ID.done='Updated the photo for '+(p?nmText(p):'that plant')+'.';ID.res=null;ID.dup=null;render()}
+function undoAdd(){S.plants=S.plants.filter(x=>x.id!==ID.added);ID.added=null;save();render()}
 function stBadge(sp){return `<b>${esc(sp.s)}</b> · ${stat(sp).t}`}
 function ac(q){q=q.trim().toLowerCase();const el=document.getElementById('sg');if(q.length<2){el.innerHTML='';return}
  const m=DB.map((s,i)=>[s,i]).filter(([s])=>(s.n+' '+s.s).toLowerCase().includes(q)).slice(0,6);
- el.innerHTML=m.map(([s,i])=>`<div class="ev" style="cursor:pointer" onclick="pick(${i})"><span><b>${esc(s.n)}</b><br><small class="mute">${esc(s.s)} · ${stat(s).t}</small></span></div>`).join('')}
-function pick(i){const s=DB[i],g=id=>{const e=document.getElementById(id);return e?e.value:''};draft.notes=g('po');draft.name=s.n;draft.sp=i;draft.type=s.type;draft.tasks=Object.keys(s.pri);draft.pri=s.pri;render()} 
+ el.innerHTML=m.map(([s,i])=>`<div class="ev" style="cursor:pointer" onclick="pick(${i})"><span><b><i>${esc(s.s)}</i></b> <span class="mute">${esc(s.n)}</span><br><small class="mute">${stat(s).t}</small></span></div>`).join('')}
+function pick(i){const s=DB[i],g=id=>{const e=document.getElementById(id);return e?e.value:''};{const cur=g('po').trim();draft.notes=(!cur||cur===draft.autoNote)?(s.note||''):cur;draft.autoNote=s.note||''}draft.name=s.n;draft.sp=i;draft.type=s.type;draft.tasks=Object.keys(s.pri);draft.pri=s.pri;render()} 
 function addP(){const n=document.getElementById('pn').value.trim();if(!n){document.getElementById('pn').focus();return}
- S.plants.push({id:'p'+Date.now(),name:n,type:draft.type,spots:draft.spots.slice(),photo:draft.photo||'',notes:document.getElementById('po').value.trim(),tasks:draft.tasks.slice(),sp:draft.sp,pri:draft.pri});draft={type:'Perennial',tasks:TYPES.Perennial.slice(),name:'',sp:null,pri:{},spots:[]};save();render()}
+ S.plants.push({id:'p'+Date.now()+Math.random().toString(36).slice(2,5),name:n,type:draft.type,spots:draft.spots.slice(),photo:draft.photo||'',notes:document.getElementById('po').value.trim(),tasks:draft.tasks.slice(),sp:draft.sp,pri:draft.pri,sci:draft.sp!=null?DB[draft.sp].s:''});draft={type:'Perennial',tasks:TYPES.Perennial.slice(),name:'',sp:null,pri:{},spots:[]};save();render()}
 function tp(id,k){const p=S.plants.find(x=>x.id===id),i=p.tasks.indexOf(k);i<0?p.tasks.push(k):p.tasks.splice(i,1);save();render()}
 function delP(id){if(confirm('Remove this plant?')){S.plants=S.plants.filter(p=>p.id!==id);save();render()}}
 
@@ -271,7 +309,7 @@ function adopt(d,v){const x=Object.assign({plants:[],done:{},set:{},spots:[],ext
  x.extra=(x.extra||[]).map(e=>({n:String(e.n),s:String(e.s),lo:+e.lo||0,hi:+e.hi||99,type:TYPES[e.type]?e.type:'Perennial',pri:e.pri||{},why:e.why||{}}));
  x.spots=x.spots.map(s=>({id:sid(s.id),name:String(s.name),sun:SUN[s.sun]?s.sun:''}));
  DB.length=NB;x.extra.forEach(e=>DB.push(e));
- x.plants=x.plants.map(p=>({...p,id:sid(p.id),name:String(p.name),type:String(p.type),notes:String(p.notes||''),spots:(p.spots||[]).map(sid),tasks:(p.tasks||[]).filter(t=>TASKS[t]),sp:Number.isInteger(p.sp)&&p.sp>=0&&p.sp<DB.length?p.sp:null,photo:/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]*$/.test(p.photo||'')?p.photo:''}));
+ x.plants=x.plants.map(p=>({...p,id:sid(p.id),name:String(p.name),type:String(p.type),notes:String(p.notes||''),sci:String(p.sci||(DB[p.sp]&&DB[p.sp].s)||''),spots:(p.spots||[]).map(sid),tasks:(p.tasks||[]).filter(t=>TASKS[t]),sp:Number.isInteger(p.sp)&&p.sp>=0&&p.sp<DB.length?p.sp:null,photo:/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]*$/.test(p.photo||'')?p.photo:''}));
  S=x;S.ver=v;S.dirty=false;persist();render()}
 let SY={st:'off',t:null,busy:false};
 function setSt(s){SY.st=s;const e=document.getElementById('sync');if(e)e.textContent={off:'Sync off (tap to enable)',ok:'Synced',busy:'Syncing...',offline:'Offline: will sync later',err:'Sync problem (tap to retry)'}[s]}
