@@ -18,7 +18,7 @@ async function viaPlantId(image, health) {
   if (!(d.is_plant && d.is_plant.binary) || !sug.length) return { identified: false };
   const name = (s) => {
     const c = s.details && s.details.common_names;
-    return clean(Array.isArray(c) && c[0] ? c[0] : s.name, 80);
+    return clean(Array.isArray(c) && c[0] ? c[0] : '', 80);
   };
   const p = +sug[0].probability || 0;
   const out = {
@@ -72,7 +72,7 @@ async function viaClaude(image, zone) {
 }
 
 module.exports = async (req, res) => {
-  const g = gate(req, res, 'identify', 20);
+  const g = gate(req, res, 'identify', 10);
   if (!g) return;
   const { image, health } = g.body;
   if (typeof image !== 'string' || !/^[A-Za-z0-9+/=]+$/.test(image) || image.length < 100) {
