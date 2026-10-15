@@ -5,9 +5,12 @@ Static app (`index.html`) plus serverless functions in `api/`:
 - `api/identify.js` identifies a plant from a photo. Uses Plant.id by default; set `IDENTIFIER=claude` to use Claude vision instead (handy for comparing the two on your own photos).
 - `api/care.js` asks Claude (text only, Haiku by default) for pruning/feeding tasks, priorities, hardiness zones and care notes for a species. It is only called for species not already in the app's list.
 - `api/garden.js` cloud sync: your whole garden is stored as one JSON row in Postgres (Neon), protected by the same password.
+- `api/photo.js` photo gallery storage: uploads each photo (full size plus thumbnail) to Vercel Blob and deletes them when you remove a photo or plant.
 - `api/_lib.js` shared helpers (password check, rate limit, validation).
 
 Flow for a new plant: photo -> Plant.id (1 credit) -> species already known? use saved care : one cheap Claude text call -> you review and add. Species learned this way are saved in your browser, so each is looked up once.
+
+See `change.log` for the version history.
 
 ## Deploy
 1. Push this folder to GitHub, then in Vercel: Add New > Project > import it (framework preset: Other).
@@ -23,8 +26,9 @@ Flow for a new plant: photo -> Plant.id (1 credit) -> species already known? use
 | `CARE_MODEL` | no | Model for care lookups (default `claude-haiku-4-5-20251001`) |
 
 3. Add the database: in your Vercel project open the Storage tab, add **Neon** (Postgres) from the Marketplace and connect it to the project. This injects `DATABASE_URL` automatically. The sync code uses Neon's driver, so pick Neon specifically.
-4. Redeploy so the functions see the variables (the table is created automatically on first use).
-5. Set a monthly spend limit in the Anthropic Console.
+4. Add photo storage: in the same Storage tab, create a **Blob** store and set its access to **Public**, then connect it to the project. This injects `BLOB_READ_WRITE_TOKEN`. Photo URLs are long random addresses stored only in your garden data, but anyone who has a URL can open that photo, so avoid photographing anything sensitive.
+5. Redeploy so the functions see the variables (the table is created automatically on first use).
+6. Set a monthly spend limit in the Anthropic Console.
 
 ## Using sync
 - On each device, tap "Sync off (tap to enable)" at the top of the app and enter your password. The status then reads Synced, Syncing, or Offline.
@@ -32,6 +36,14 @@ Flow for a new plant: photo -> Plant.id (1 credit) -> species already known? use
 - Every save carries a version number. If two devices edit the same version, the second one is asked whether to keep its own copy or use the cloud copy, so nothing is overwritten silently.
 - Settings > Backup downloads or restores your garden as a file. Download one before first enabling sync.
 - Limits: one shared garden per password, whole-document sync (about 4 MB max, mostly photo thumbnails; move photos to Vercel Blob if you outgrow this), and species learned from photos depend on the built-in list order, so keep every device on the same deployment.
+
+## Photo galleries
+- Tap a plant's thumbnail (on its card or in the calendar) to open the gallery. Tap "+" on a plant with no photo to add one.
+- Each photo has a date (defaulting to when the file was taken), an optional caption, and can be set as the cover photo.
+- Settings > Photos, or the Order buttons in the gallery, switch between Timeline (oldest first) and By season. By season ignores the year and groups spring (Mar-May), summer (Jun-Aug), autumn (Sep-Nov), and winter (Dec-Feb), flipping for the southern hemisphere setting.
+- Photos from identification are saved right away as a small copy, then uploaded to Blob in the background. If Blob is not connected, the small copy is kept.
+- Older single photos are converted to the first gallery photo. They stay small (about 320 px) because the larger original was never saved.
+- Deleting a photo or plant also deletes its files from Blob. If the app is offline at that moment, the files can be left behind, and you can remove them in the Vercel dashboard.
 
 ## Local testing
 `npm i -g vercel`, then `vercel dev` (put the variables in a git-ignored `.env.local`).

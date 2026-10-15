@@ -37,6 +37,24 @@ label{display:block;font-size:13px;color:var(--mute);margin:8px 0 3px}
 .ev.done span{text-decoration:line-through;color:var(--mute)}
 .mute{color:var(--mute);font-size:14px}
 .x{background:none;border:0;color:var(--mute);cursor:pointer;font-size:18px}
+.badge{position:absolute;right:-4px;top:-4px;background:var(--accent);color:var(--accent-ink);font-size:11px;border-radius:99px;padding:0 6px}
+.addph{width:64px;height:64px;border:2px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:24px;cursor:pointer;flex:none}
+.lbo{position:fixed;inset:0;z-index:50;background:rgba(10,14,8,.94);color:#eef2ea;overflow-y:auto;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
+.lbi{max-width:760px;margin:0 auto}
+.lbr{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:10px 0;flex-wrap:wrap}
+.lbm{display:flex;gap:8px;align-items:center;justify-content:center}
+.lbm img{max-width:100%;max-height:60vh;object-fit:contain;border-radius:8px;min-width:0;flex:1}
+.lbc{text-align:center;margin:6px 0}
+.lbb{background:#2f3a2a;color:#eef2ea;border:1px solid #4a5a44;border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
+.lbb.on{background:#4a7c3a;border-color:#4a7c3a}
+.lbo input{background:#1b2217;color:#eef2ea;border-color:#4a5a44;width:auto;flex:1;min-width:0}
+.lbo label{color:#b9c4b2}
+.lbh2{margin:12px 0 4px;font-weight:600}
+.lbt{display:flex;gap:8px;flex-wrap:wrap}
+.tw{text-align:center;cursor:pointer;font-size:11px;color:#b9c4b2}
+.tw img{width:64px;height:64px;object-fit:cover;border-radius:6px;display:block;border:2px solid transparent}
+.tw img.sel{border-color:#7bb35f}
+.lbp{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -45,6 +63,7 @@ label{display:block;font-size:13px;color:var(--mute);margin:8px 0 3px}
 <nav id="nav"></nav>
 <div id="view"></div>
 </main>
+<div id="lb" style="display:none"></div>
 <script>
 const TASKS={
  heavy:{n:'Heavy pruning',a:'last',o:-35,c:'#b5523b',tip:'Late winter, before buds break'},
@@ -130,6 +149,7 @@ for(const p of S.plants){const sp=DB[p.sp];if(sp&&sp.n==='Lavender'){const i=p.t
 for(const p of S.plants)if(p.loc&&!p.spot&&!Array.isArray(p.spots)){let s=S.spots.find(x=>x.name.toLowerCase()===p.loc.toLowerCase());if(!s){s={id:'s'+Math.random().toString(36).slice(2,8),name:p.loc,sun:''};S.spots.push(s)}p.spot=s.id}
 for(const p of S.plants){if(!Array.isArray(p.spots))p.spots=p.spot?[p.spot]:[];delete p.spot;delete p.loc}
 for(const p of S.plants)if(p.sci===undefined)p.sci=(DB[p.sp]&&DB[p.sp].s)||'';
+for(const p of S.plants)migPhoto(p);
 let warned=false;
 const persist=()=>{try{localStorage.setItem('garden-v1',JSON.stringify(S))}catch(e){if(!warned){warned=true;alert('Browser storage is full, so recent changes may not be saved on this device. Download a backup from Settings.')}}};
 const save=()=>{S.dirty=true;persist();sched()};
@@ -153,7 +173,7 @@ function events(y){ // all events for calendar year y
 const ek=e=>e.p.id+'|'+e.t+'|'+key(e.d);
 
 function nav(){document.getElementById('nav').innerHTML=[['cal','Calendar'],['plants','Plants'],['spots','Spots'],['set','Settings']].map(([k,l])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('')}
-function render(){nav();document.getElementById('view').innerHTML=tab==='cal'?vCal():tab==='plants'?vPlants():tab==='spots'?vSpots():vSet();}
+function render(){nav();document.getElementById('view').innerHTML=tab==='cal'?vCal():tab==='plants'?vPlants():tab==='spots'?vSpots():vSet();renderLB()}
 
 function vCal(){
  if(!S.plants.length)return `<div class="card">No plants yet. Add some on the <b>Plants</b> tab and your care calendar will appear here.</div>`;
@@ -182,7 +202,7 @@ function vPlants(){
  <button class="btn" onclick="addP()">Add plant</button></div>`;
  const list=S.plants.map(p=>{
   if(EDIT===p.id)return `<div class="card"><b>Edit plant</b><label>Common name</label><input id="en" value="${esc(p.name)}"><label>Scientific name</label><input id="es" value="${esc(p.sci||'')}" placeholder="optional"><label>Notes</label><textarea id="eo" rows="5">${esc(p.notes||'')}</textarea><button class="btn" onclick="saveP()">Save</button> <button class="btn ghost" onclick="EDIT=null;render()">Cancel</button></div>`;
-  return `<div class="card"><div class="row"><div style="display:flex;gap:10px;align-items:center">${p.photo?`<img src="${p.photo}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex:none">`:''}<div>${nmHtml(p)}<div class="mute">${esc(p.type)}</div>${DB[p.sp]?`<div class="mute">${stat(DB[p.sp]).t}</div>`:''}</div></div><div style="white-space:nowrap"><button class="x" onclick="editP('${p.id}')" title="Edit">✎</button><button class="x" onclick="delP('${p.id}')" title="Remove">✕</button></div></div><div style="margin-top:6px">${spotChecks(p.spots,"tsp.bind(null,'"+p.id+"')")}</div>${p.notes?`<p class="mute" style="white-space:pre-wrap">${esc(p.notes)}</p>`:''}${chips(p.tasks,"tp.bind(null,'"+p.id+"')")}</div>`}).join('');
+  return `<div class="card"><div class="row"><div style="display:flex;gap:10px;align-items:center">${cardImg(p)}<div>${nmHtml(p)}<div class="mute">${esc(p.type)}</div>${DB[p.sp]?`<div class="mute">${stat(DB[p.sp]).t}</div>`:''}</div></div><div style="white-space:nowrap"><button class="x" onclick="editP('${p.id}')" title="Edit">✎</button><button class="x" onclick="delP('${p.id}')" title="Remove">✕</button></div></div><div style="margin-top:6px">${spotChecks(p.spots,"tsp.bind(null,'"+p.id+"')")}</div>${p.notes?`<p class="mute" style="white-space:pre-wrap">${esc(p.notes)}</p>`:''}${chips(p.tasks,"tp.bind(null,'"+p.id+"')")}</div>`}).join('');
  return idCard()+form+(list||'');
 }
 function dt(k){const a=draft.tasks,i=a.indexOf(k);i<0?a.push(k):a.splice(i,1);keep();render()}
@@ -202,12 +222,77 @@ const lsg=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lss=(k,v
 const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):'';
 const nmHtml=p=>p.sci?`<b><i>${esc(p.sci)}</i></b>${p.name&&p.name!==p.sci?' <span class="mute">'+esc(p.name)+'</span>':''}`:`<b>${esc(p.name)}</b>`;
 const nmText=p=>p.sci&&p.name&&p.name!==p.sci?`${p.sci} (${p.name})`:(p.sci||p.name);
-const thumb=p=>p.photo?`<img src="${p.photo}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex:none">`:'';
+const thumb=p=>{const c=cov(p);return c?`<img src="${c.thumb}" alt="" onclick="openLB('${p.id}')" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex:none;cursor:pointer">`:''};
 const same=(a,b)=>{a=(a||'').toLowerCase();b=(b||'').toLowerCase();if(!a||!b)return false;return a===b||((/spp\./.test(a)||/spp\./.test(b))&&a.split(' ')[0]===b.split(' ')[0])};
 const hash=s=>{let h=0;for(let i=0;i<s.length;i+=7)h=(h*31+s.charCodeAt(i))|0;return s.length+':'+h};
 const IDC={};let EDIT=null;
 function editP(id){EDIT=id;render()}
 function saveP(){const p=S.plants.find(x=>x.id===EDIT);if(p){const g=i=>document.getElementById(i).value.trim();p.name=g('en')||p.name;p.sci=g('es');p.notes=document.getElementById('eo').value.trim();save()}EDIT=null;render()}
+// ---- photo gallery ----
+const SEAS=['Spring','Summer','Autumn','Winter'],SST=[2,5,8,11];
+const BLOBRE=/^https:\/\/[A-Za-z0-9-]+\.public\.blob\.vercel-storage\.com\/garden\/[A-Za-z0-9._-]+\.jpg$/,DATARE=/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]*$/;
+const okUrl=u=>typeof u==='string'&&(BLOBRE.test(u)||DATARE.test(u));
+const ymdLocal=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const newPhId=()=>'ph'+Date.now()+Math.random().toString(36).slice(2,5);
+const fmtD=ds=>new Date(+ds.slice(0,4),+ds.slice(5,7)-1,+ds.slice(8,10)).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+const shortD=ds=>new Date(+ds.slice(0,4),+ds.slice(5,7)-1,+ds.slice(8,10)).toLocaleDateString(undefined,{month:'short',year:'2-digit'});
+function cleanPhotos(a){return(Array.isArray(a)?a:[]).filter(x=>x&&okUrl(x.url)).map(x=>({id:sid(x.id)||newPhId(),url:x.url,thumb:okUrl(x.thumb)?x.thumb:x.url,date:/^\d{4}-\d{2}-\d{2}$/.test(x.date)?x.date:ymdLocal(new Date()),cap:String(x.cap||'').slice(0,200)}))}
+function migPhoto(p){if(!Array.isArray(p.photos))p.photos=[];
+ if(p.photo&&!p.photos.length){const t=+String(p.id).slice(1,14);p.photos.push({id:'legacy',url:p.photo,thumb:p.photo,date:new Date(t>1e12?t:Date.now()).toISOString().slice(0,10),cap:''})}
+ delete p.photo;if(typeof p.cover!=='string')p.cover=''}
+const cov=p=>{const ph=p.photos||[];return ph.find(x=>x.id===p.cover)||[...ph].sort((a,b)=>b.date.localeCompare(a.date))[0]||null};
+function sIdx(ds){const m=+ds.slice(5,7)-1,nh=[3,3,0,0,0,1,1,1,2,2,2,3][m];return{disp:(nh+(S.set.south?2:0))%4,off:((m-SST[nh]+12)%12)*100+ +ds.slice(8,10)}}
+function sorted(p){const a=[...(p.photos||[])];
+ if(S.set.photoSort==='season')return a.sort((x,y)=>{const u=sIdx(x.date),v=sIdx(y.date);return u.disp-v.disp||u.off-v.off||x.date.localeCompare(y.date)});
+ return a.sort((x,y)=>x.date.localeCompare(y.date))}
+const cardImg=p=>{const c=cov(p),n=(p.photos||[]).length;
+ return c?`<div style="position:relative;flex:none;cursor:pointer" onclick="openLB('${p.id}')" title="View photos"><img src="${c.thumb}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block">${n>1?`<span class="badge">${n}</span>`:''}</div>`:`<div class="addph" onclick="openLB('${p.id}')" title="Add photos">+</div>`};
+function bgPost(body){const pw=lsg('garden-pw');if(!pw)return;fetch('/api/photo',{method:'POST',headers:{'content-type':'application/json','x-app-password':pw},body:JSON.stringify(body)}).catch(()=>{})}
+const delBlobs=urls=>{const u=[...new Set((urls||[]).filter(x=>BLOBRE.test(x)))];if(u.length)bgPost({action:'delete',urls:u})};
+async function bgUpload(pid,phid,full,th){try{const r=await api('/api/photo',{image:full.split(',')[1],thumb:th.split(',')[1]});
+ const p=S.plants.find(x=>x.id===pid),ph=p&&(p.photos||[]).find(x=>x.id===phid);
+ if(ph){ph.url=r.url;ph.thumb=r.thumb;save();render()}else delBlobs([r.url,r.thumb])}catch(e){}}
+let LB=null;
+function openLB(pid,sel){LB={pid,sel:sel||'',pend:null};document.body.style.overflow='hidden';renderLB()}
+function closeLB(){LB=null;document.body.style.overflow='';renderLB()}
+function pickPh(id){LB.sel=id;renderLB()}
+const lbPlant=()=>LB&&S.plants.find(x=>x.id===LB.pid);
+const curPh=p=>(p.photos||[]).find(x=>x.id===LB.sel)||cov(p);
+function stepLB(d){const p=lbPlant();if(!p)return;const a=sorted(p);if(!a.length)return;const c=curPh(p),i=a.findIndex(x=>c&&x.id===c.id);LB.sel=a[(i+d+a.length)%a.length].id;renderLB()}
+function setSort(v){S.set.photoSort=v==='season'?'season':'time';save();render()}
+function phSet(k,v){const p=lbPlant(),c=p&&curPh(p);if(!c)return;if(k==='date'){if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return renderLB();c.date=v}else c.cap=String(v).slice(0,200);LB.sel=c.id;save();renderLB()}
+function phCover(){const p=lbPlant(),c=p&&curPh(p);if(!c)return;p.cover=c.id;save();render()}
+function phDel(){const p=lbPlant(),c=p&&curPh(p);if(!c||!confirm('Delete this photo?'))return;p.photos=p.photos.filter(x=>x.id!==c.id);if(p.cover===c.id)p.cover='';LB.sel='';delBlobs([c.url,c.thumb]);save();render()}
+async function lbFile(inp){const f=inp.files[0];inp.value='';if(!f||!LB)return;
+ LB.pend={busy:true,msg:'Preparing photo...'};renderLB();
+ try{const full=await shrink(f,1280,.82),th=await shrink(f,320,.7),t=f.lastModified;
+  if(LB)LB.pend={full,th,date:ymdLocal(t&&t<=Date.now()?new Date(t):new Date()),cap:'',busy:false,err:''}}
+ catch(e){if(LB)LB.pend={busy:false,err:e.message}}
+ renderLB()}
+async function lbSave(small){const pe=LB&&LB.pend,p=lbPlant();if(!pe||!pe.full||!p)return;
+ pe.busy=true;pe.err='';renderLB();
+ const ph={id:newPhId(),url:pe.th,thumb:pe.th,date:/^\d{4}-\d{2}-\d{2}$/.test(pe.date)?pe.date:ymdLocal(new Date()),cap:pe.cap||''};
+ if(!small){try{const r=await api('/api/photo',{image:pe.full.split(',')[1],thumb:pe.th.split(',')[1]});ph.url=r.url;ph.thumb=r.thumb}
+  catch(e){pe.busy=false;pe.err=e.message;pe.canSmall=true;if(LB)renderLB();return}}
+ (p.photos=p.photos||[]).push(ph);if(LB){LB.sel=ph.id;LB.pend=null}save();render()}
+function renderLB(){const el=document.getElementById('lb');if(!el)return;
+ if(!LB){el.style.display='none';el.innerHTML='';return}
+ const p=lbPlant();if(!p){LB=null;document.body.style.overflow='';return renderLB()}
+ const a=sorted(p),c=curPh(p),seas=S.set.photoSort==='season',pe=LB.pend;
+ const tb=x=>`<div class="tw" onclick="pickPh('${x.id}')"><img src="${x.thumb}" alt="" class="${c&&x.id===c.id?'sel':''}"><small>${esc(shortD(x.date))}</small></div>`;
+ let strip='';
+ if(seas){for(let s=0;s<4;s++){const g=a.filter(x=>sIdx(x.date).disp===s);if(g.length)strip+=`<div class="lbh2">${SEAS[s]}</div><div class="lbt">${g.map(tb).join('')}</div>`}}
+ else strip=`<div class="lbt">${a.map(tb).join('')}</div>`;
+ const pend=pe?(pe.full?`<div class="lbp"><img src="${pe.th}" alt="" style="width:96px;height:96px;object-fit:cover;border-radius:8px"><div style="flex:1"><label>Photo date</label><input type="date" value="${esc(pe.date)}" oninput="LB.pend.date=this.value"><input placeholder="Caption (optional)" value="${esc(pe.cap)}" oninput="LB.pend.cap=this.value" style="margin-top:6px"></div></div>${pe.err?`<p style="color:#ff9b85">${esc(pe.err)}</p>`:''}${pe.busy?'<p>Uploading...</p>':`<button class="lbb on" onclick="lbSave(false)">Save photo</button> ${pe.canSmall?'<button class="lbb" onclick="lbSave(true)">Save small copy only</button> ':''}<button class="lbb" onclick="LB.pend=null;renderLB()">Cancel</button>`}`:`<p${pe.err?' style="color:#ff9b85"':''}>${esc(pe.busy?(pe.msg||'Working...'):(pe.err||''))}</p>`):`<label class="lbb" style="display:inline-block">Add photo<input type="file" accept="image/*" hidden onchange="lbFile(this)"></label>`;
+ el.style.display='block';
+ el.innerHTML=`<div class="lbo" onclick="if(event.target===this)closeLB()"><div class="lbi">
+ <div class="lbr"><span>${p.sci?'<i>'+esc(p.sci)+'</i> ':''}${esc(p.name)}</span><button class="lbb" onclick="closeLB()">Close</button></div>
+ ${c?`<div class="lbm"><button class="lbb" onclick="stepLB(-1)" aria-label="Previous photo">‹</button><img src="${c.url}" alt="${esc(p.name)}"><button class="lbb" onclick="stepLB(1)" aria-label="Next photo">›</button></div>
+ <p class="lbc">${esc(fmtD(c.date))} · ${SEAS[sIdx(c.date).disp]}</p>
+ <div class="lbr"><input type="date" value="${esc(c.date)}" onchange="phSet('date',this.value)"><input placeholder="Caption (optional)" value="${esc(c.cap||'')}" onchange="phSet('cap',this.value)"></div>
+ <div class="lbr"><button class="lbb" onclick="phCover()">${cov(p).id===c.id?'Cover photo ✓':'Set as cover'}</button><button class="lbb" onclick="phDel()">Delete photo</button></div>`:'<p>No photos yet. Add one to start a seasonal gallery.</p>'}
+ <div class="lbr"><span>Order:</span><button class="lbb ${seas?'':'on'}" onclick="setSort('time')">Timeline</button><button class="lbb ${seas?'on':''}" onclick="setSort('season')">By season</button></div>
+ ${strip}<div style="margin:14px 0">${pend}</div></div></div>`}
 let ID={busy:false,res:null,err:'',thumb:''};
 function shrink(file,max,q){return new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(file),bad=()=>no(new Error('Could not process that photo.'));
  im.onload=()=>{try{const r=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);c.getContext('2d').drawImage(im,0,0,c.width,c.height);const d=c.toDataURL('image/jpeg',q);URL.revokeObjectURL(u);d.startsWith('data:image/jpeg')?ok(d):bad()}catch(e){bad()}};
@@ -226,7 +311,7 @@ async function resolveCare(j){const i=dbIdx(j.scientific);
  try{const c=await api('/api/care',{scientific:j.scientific,common:j.common,zone:S.set.zone});Object.assign(j,{type:c.type,hardiness:c.hardiness,tasks:c.tasks,notes:c.notes,toxicity:c.toxicity})}
  catch(e){j.tasks=[];j.type='Perennial';j.notes='';j.toxicity='';j.careFailed=true}}
 async function identify(inp){const f=inp.files[0];if(!f)return;ID={busy:true,res:null,err:'',thumb:'',msg:'Identifying...'};render();
- try{const big=await shrink(f,1024,.8);ID.thumb=await shrink(f,320,.7);
+ try{const big=await shrink(f,1024,.8);ID.thumb=await shrink(f,320,.7);ID.big=big;ID.date=ymdLocal(f.lastModified&&f.lastModified<=Date.now()?new Date(f.lastModified):new Date());
   const hk=hash(big)+(HEALTH?'h':'');
   if(IDC[hk])ID.res=JSON.parse(JSON.stringify(IDC[hk]));
   else{const j=await api('/api/identify',{image:big.split(',')[1],zone:S.set.zone,health:HEALTH});
@@ -252,9 +337,9 @@ function idCard(){const r=ID.res;let out='';
  const img=(p,n)=>p?`<img src="${p}" alt="" style="width:${n}px;height:${n}px;object-fit:cover;border-radius:8px;flex:none">`:'';
  if(ID.done&&!r&&!ID.added)out=`<p><b>${esc(ID.done)}</b></p>`;
  if(ID.added){const p=S.plants.find(x=>x.id===ID.added);
-  if(p)out=`<div class="ev">${img(p.photo,56)}<span>Added ${nmHtml(p)}</span></div><p class="mute">Where is it growing?</p>${spotChecks(p.spots||[],"tsp.bind(null,'"+p.id+"')")}<button class="btn" onclick="ID.added=null;render()">Done</button> <button class="btn ghost" onclick="undoAdd()">Undo</button>`}
+  if(p)out=`<div class="ev">${img((cov(p)||{}).thumb,56)}<span>Added ${nmHtml(p)}</span></div><p class="mute">Where is it growing?</p>${spotChecks(p.spots||[],"tsp.bind(null,'"+p.id+"')")}<button class="btn" onclick="ID.added=null;render()">Done</button> <button class="btn ghost" onclick="undoAdd()">Undo</button>`}
  else if(r&&ID.dup){const m=S.plants.filter(p=>ID.dup.includes(p.id));
-  out=`<p><b>You already have ${m.length>1?'plants of this species':'this plant'}.</b></p>${m.map(p=>`<div class="ev">${thumb(p)}<span>${nmHtml(p)}<br><small class="mute">${esc(p.spots.map(id=>(S.spots.find(s=>s.id===id)||{}).name).filter(Boolean).join(', ')||'No spot set')}</small></span><button class="btn ghost" style="margin:0" onclick="dupPhoto('${p.id}')">Replace photo</button></div>`).join('')}<button class="btn" onclick="ID.forceNew=true;ID.dup=null;useId()">Add as a new plant</button> <button class="btn ghost" onclick="ID.dup=null;render()">Back</button>`}
+  out=`<p><b>You already have ${m.length>1?'plants of this species':'this plant'}.</b></p>${m.map(p=>`<div class="ev">${thumb(p)}<span>${nmHtml(p)}<br><small class="mute">${esc(p.spots.map(id=>(S.spots.find(s=>s.id===id)||{}).name).filter(Boolean).join(', ')||'No spot set')}</small></span><button class="btn ghost" style="margin:0" onclick="addDup('${p.id}')">Add photo to this plant</button></div>`).join('')}<button class="btn" onclick="ID.forceNew=true;ID.dup=null;useId()">Add as a new plant</button> <button class="btn ghost" onclick="ID.dup=null;render()">Back</button>`}
  else if(r&&!r.identified)out='<p>Could not identify that plant. Try a clear, close photo of a leaf or flower.</p>';
  else if(r){const lv=['','Optional','Recommended','Critical'];
   out=`<div class="ev">${img(ID.thumb,72)}<span><b><i>${esc(r.scientific)}</i></b>${r.common?'<br>'+esc(cap(r.common)):''}<br><small class="mute">Confidence: ${esc(r.confidence)}${r.probability?' ('+r.probability+'%)':''}${r.source==='plantid'?' · Identified with Plant.id':''}</small></span></div>
@@ -277,9 +362,10 @@ function useId(){const r=ID.res;
  if(i<0&&(r.tasks||[]).length){const e={n:cap(r.common)||r.scientific,s:r.scientific,lo:r.hardiness.min,hi:r.hardiness.max,type:r.type,pri:{},why:{}};r.tasks.forEach(t=>{e.pri[t.key]=t.priority;e.why[t.key]=t.why});DB.push(e);S.extra.push(e);i=DB.length-1}
  const sp=i>=0?DB[i]:null,type=sp?sp.type:(r.type||'Perennial');
  const notes=[r.notes||(sp&&sp.note)||'',r.toxicity?'Safety: '+r.toxicity:''].filter(Boolean).join('\n');
- const p={id:'p'+Date.now()+Math.random().toString(36).slice(2,5),name:cap(r.common)||(sp&&sp.n)||r.scientific,sci:r.scientific,type,spots:[],notes,tasks:sp?Object.keys(sp.pri):TYPES[type].slice(),sp:i>=0?i:null,pri:sp?sp.pri:{},photo:ID.thumb||''};
- S.plants.push(p);ID.res=null;ID.dup=null;ID.done='';ID.added=p.id;save();render()}
-function dupPhoto(id){const p=S.plants.find(x=>x.id===id);if(p&&ID.thumb){p.photo=ID.thumb;save()}ID.done='Updated the photo for '+(p?nmText(p):'that plant')+'.';ID.res=null;ID.dup=null;render()}
+ const photos=ID.thumb?[{id:newPhId(),url:ID.thumb,thumb:ID.thumb,date:ID.date||ymdLocal(new Date()),cap:''}]:[];
+ const p={id:'p'+Date.now()+Math.random().toString(36).slice(2,5),name:cap(r.common)||(sp&&sp.n)||r.scientific,sci:r.scientific,type,spots:[],notes,tasks:sp?Object.keys(sp.pri):TYPES[type].slice(),sp:i>=0?i:null,pri:sp?sp.pri:{},photos,cover:''};
+ S.plants.push(p);ID.res=null;ID.dup=null;ID.done='';ID.added=p.id;save();render();if(photos.length&&ID.big)bgUpload(p.id,photos[0].id,ID.big,ID.thumb)}
+function addDup(id){const p=S.plants.find(x=>x.id===id);if(p&&ID.thumb){const ph={id:newPhId(),url:ID.thumb,thumb:ID.thumb,date:ID.date||ymdLocal(new Date()),cap:''};(p.photos=p.photos||[]).push(ph);save();if(ID.big)bgUpload(p.id,ph.id,ID.big,ID.thumb)}ID.done='Added a new photo to '+(p?nmText(p):'that plant')+'.';ID.res=null;ID.dup=null;render()}
 function undoAdd(){S.plants=S.plants.filter(x=>x.id!==ID.added);ID.added=null;save();render()}
 function stBadge(sp){return `<b>${esc(sp.s)}</b> · ${stat(sp).t}`}
 function ac(q){q=q.trim().toLowerCase();const el=document.getElementById('sg');if(q.length<2){el.innerHTML='';return}
@@ -287,9 +373,9 @@ function ac(q){q=q.trim().toLowerCase();const el=document.getElementById('sg');i
  el.innerHTML=m.map(([s,i])=>`<div class="ev" style="cursor:pointer" onclick="pick(${i})"><span><b><i>${esc(s.s)}</i></b> <span class="mute">${esc(s.n)}</span><br><small class="mute">${stat(s).t}</small></span></div>`).join('')}
 function pick(i){const s=DB[i],g=id=>{const e=document.getElementById(id);return e?e.value:''};{const cur=g('po').trim();draft.notes=(!cur||cur===draft.autoNote)?(s.note||''):cur;draft.autoNote=s.note||''}draft.name=s.n;draft.sp=i;draft.type=s.type;draft.tasks=Object.keys(s.pri);draft.pri=s.pri;render()} 
 function addP(){const n=document.getElementById('pn').value.trim();if(!n){document.getElementById('pn').focus();return}
- S.plants.push({id:'p'+Date.now()+Math.random().toString(36).slice(2,5),name:n,type:draft.type,spots:draft.spots.slice(),photo:draft.photo||'',notes:document.getElementById('po').value.trim(),tasks:draft.tasks.slice(),sp:draft.sp,pri:draft.pri,sci:draft.sp!=null?DB[draft.sp].s:''});draft={type:'Perennial',tasks:TYPES.Perennial.slice(),name:'',sp:null,pri:{},spots:[]};save();render()}
+ S.plants.push({id:'p'+Date.now()+Math.random().toString(36).slice(2,5),name:n,type:draft.type,spots:draft.spots.slice(),photos:[],cover:'',notes:document.getElementById('po').value.trim(),tasks:draft.tasks.slice(),sp:draft.sp,pri:draft.pri,sci:draft.sp!=null?DB[draft.sp].s:''});draft={type:'Perennial',tasks:TYPES.Perennial.slice(),name:'',sp:null,pri:{},spots:[]};save();render()}
 function tp(id,k){const p=S.plants.find(x=>x.id===id),i=p.tasks.indexOf(k);i<0?p.tasks.push(k):p.tasks.splice(i,1);save();render()}
-function delP(id){if(confirm('Remove this plant?')){S.plants=S.plants.filter(p=>p.id!==id);save();render()}}
+function delP(id){if(confirm('Remove this plant?')){const q=S.plants.find(p=>p.id===id);if(q)delBlobs((q.photos||[]).flatMap(x=>[x.url,x.thumb]));S.plants=S.plants.filter(p=>p.id!==id);save();render()}}
 
 function vSet(){const s=S.set;
  return `<div class="card"><b>Your climate</b><p class="mute">Task dates are scheduled relative to your last spring frost and first fall frost.</p>
@@ -297,7 +383,7 @@ function vSet(){const s=S.set;
  <label>Last spring frost (MM-DD)</label><input value="${s.last}" onchange="setD('last',this.value)">
  <label>First fall frost (MM-DD)</label><input value="${s.first}" onchange="setD('first',this.value)">
  <label><input type="checkbox" style="width:auto" ${s.south?'checked':''} onchange="S.set.south=this.checked;save()"> Southern hemisphere (shifts seasons by 6 months)</label></div>
- <div class="card"><b>Backup</b><p class="mute">Download a copy of your garden, or restore one. Restoring replaces everything on this device (and the cloud copy, if sync is on).</p><button class="btn" onclick="exportData()">Download backup</button> <label class="btn ghost" style="display:inline-block;cursor:pointer">Restore backup<input type="file" accept="application/json" hidden onchange="importData(this)"></label></div><div class="card"><b>Task timing guide</b>${Object.values(TASKS).map(t=>`<div class="ev"><i class="dot" style="background:${t.c}"></i><span><b>${t.n}</b><br><small class="mute">${t.tip}</small></span></div>`).join('')}</div>`;
+ <div class="card"><b>Photos</b><p class="mute">How plant photo galleries are ordered. By season ignores the year, so all spring photos group together, then summer, autumn, and winter.</p><select onchange="setSort(this.value)"><option value="time" ${s.photoSort!=='season'?'selected':''}>Timeline (oldest first)</option><option value="season" ${s.photoSort==='season'?'selected':''}>By season (ignoring year)</option></select></div><div class="card"><b>Backup</b><p class="mute">Download a copy of your garden, or restore one. Restoring replaces everything on this device (and the cloud copy, if sync is on).</p><button class="btn" onclick="exportData()">Download backup</button> <label class="btn ghost" style="display:inline-block;cursor:pointer">Restore backup<input type="file" accept="application/json" hidden onchange="importData(this)"></label></div><div class="card"><b>Task timing guide</b>${Object.values(TASKS).map(t=>`<div class="ev"><i class="dot" style="background:${t.c}"></i><span><b>${t.n}</b><br><small class="mute">${t.tip}</small></span></div>`).join('')}</div>`;
 }
 function setZ(z){S.set.zone=+z;[S.set.last,S.set.first]=ZONES[z];save();render()}
 function setD(k,v){if(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v)){S.set[k]=v;save()}else{alert('Use the format MM-DD, like 04-15');render()}}
@@ -305,11 +391,11 @@ function setD(k,v){if(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v)){S.set[k
 const payload=()=>{const{ver,dirty,...d}=S;return d};
 const sid=x=>String(x==null?'':x).replace(/[^\w-]/g,'');
 function adopt(d,v){const x=Object.assign({plants:[],done:{},set:{},spots:[],extra:[]},d),t=x.set||{};
- x.set={zone:ZONES[t.zone]?+t.zone:7,south:!!t.south,last:/^\d\d-\d\d$/.test(t.last)?t.last:'04-12',first:/^\d\d-\d\d$/.test(t.first)?t.first:'10-25'};
+ x.set={zone:ZONES[t.zone]?+t.zone:7,south:!!t.south,last:/^\d\d-\d\d$/.test(t.last)?t.last:'04-12',first:/^\d\d-\d\d$/.test(t.first)?t.first:'10-25',photoSort:t.photoSort==='season'?'season':'time'};
  x.extra=(x.extra||[]).map(e=>({n:String(e.n),s:String(e.s),lo:+e.lo||0,hi:+e.hi||99,type:TYPES[e.type]?e.type:'Perennial',pri:e.pri||{},why:e.why||{}}));
  x.spots=x.spots.map(s=>({id:sid(s.id),name:String(s.name),sun:SUN[s.sun]?s.sun:''}));
  DB.length=NB;x.extra.forEach(e=>DB.push(e));
- x.plants=x.plants.map(p=>({...p,id:sid(p.id),name:String(p.name),type:String(p.type),notes:String(p.notes||''),sci:String(p.sci||(DB[p.sp]&&DB[p.sp].s)||''),spots:(p.spots||[]).map(sid),tasks:(p.tasks||[]).filter(t=>TASKS[t]),sp:Number.isInteger(p.sp)&&p.sp>=0&&p.sp<DB.length?p.sp:null,photo:/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]*$/.test(p.photo||'')?p.photo:''}));
+ x.plants=x.plants.map(p=>{migPhoto(p);return{...p,id:sid(p.id),name:String(p.name),type:String(p.type),notes:String(p.notes||''),sci:String(p.sci||(DB[p.sp]&&DB[p.sp].s)||''),spots:(p.spots||[]).map(sid),tasks:(p.tasks||[]).filter(t=>TASKS[t]),sp:Number.isInteger(p.sp)&&p.sp>=0&&p.sp<DB.length?p.sp:null,photos:cleanPhotos(p.photos),cover:sid(p.cover||'')}});
  S=x;S.ver=v;S.dirty=false;persist();render()}
 let SY={st:'off',t:null,busy:false};
 function setSt(s){SY.st=s;const e=document.getElementById('sync');if(e)e.textContent={off:'Sync off (tap to enable)',ok:'Synced',busy:'Syncing...',offline:'Offline: will sync later',err:'Sync problem (tap to retry)'}[s]}
@@ -340,7 +426,8 @@ async function pull(){setSt('busy');
  catch(e){setSt('offline')}}
 async function syncTap(){if(!lsg('garden-pw')){const pw=prompt('Enter the app password to turn on sync');if(!pw)return;lss('garden-pw',pw)}
  await pull();if(SY.st==='off')alert("Couldn't turn on sync. Check the password and that the Neon database is connected in Vercel.")}
-function syncInit(){const on=!!lsg('garden-pw');setSt(on?'busy':'off');if(on)pull();
+function syncInit(){const on=!!lsg('garden-pw');
+ document.addEventListener('keydown',e=>{if(!LB||/INPUT|TEXTAREA/.test((e.target||{}).tagName||''))return;if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight')stepLB(1);else if(e.key==='ArrowLeft')stepLB(-1)});setSt(on?'busy':'off');if(on)pull();
  addEventListener('online',()=>{if(S.dirty)sched()});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&lsg('garden-pw')&&!SY.busy&&!S.dirty)pull()})}
 function exportData(){const b=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='garden-backup-'+key(new Date())+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}

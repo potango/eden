@@ -1,0 +1,185 @@
+GARDEN PLANNER CHANGE LOG
+=========================
+Newest entries first. Each entry lists what was Added, Changed, Fixed, or Removed,
+plus any Notes (things to know before deploying or testing).
+
+This log was started on 2026-10-09. Entries for earlier versions were reconstructed
+from the project history and have no exact dates.
+
+Update rule: every change to the app gets an entry here, and package.json's
+"version" is bumped to match.
+
+
+[2.0.0] 2026-10-09  Phase 2 photo galleries
+-------------------------------------------
+Added
+- Multiple photos per plant, stored in Vercel Blob (api/photo.js uploads a full-size
+  photo and a thumbnail, and deletes them on request).
+- Photo gallery viewer: tap a plant thumbnail (plant card or calendar) to see an enlarged
+  photo inside the app, with previous/next buttons, arrow keys, and Escape to close.
+- Photo order setting: Timeline (oldest first) or By season, which ignores the year and
+  groups spring, summer, autumn, and winter (meteorological seasons, flipped for the
+  southern hemisphere). Available in Settings > Photos and in the gallery.
+- Per-photo date (defaults to the file's date), caption, set-as-cover, and delete.
+- Duplicate identification prompt now offers "Add photo to this plant".
+- "+" tile on plants without photos opens the gallery to add one; a count badge shows
+  how many photos a plant has.
+
+Changed
+- Photos found by identification are saved immediately as a small copy and uploaded to
+  Blob in the background, so adding a plant is not delayed.
+- Deleting a plant also deletes its stored photos.
+- Cloud sync and backups now carry photo lists (links, dates, captions), and photo URLs
+  are validated on load (only Blob links and embedded JPEGs are accepted).
+- package.json version 2.0.0; added dependency @vercel/blob.
+
+Removed
+- "Replace photo" in the duplicate prompt (replaced by adding to the gallery).
+
+Notes
+- Requires a Public Blob store connected to the project (provides BLOB_READ_WRITE_TOKEN).
+  Photo links are unguessable but not password protected.
+- Older single photos become the first gallery photo and stay small (about 320 px).
+- If upload fails, the gallery offers to keep a small copy inside the garden data.
+- Tested against a stand-in for Blob, not the live service.
+
+
+[1.4.0] 2026-10-09  Phase 1 identification workflow
+---------------------------------------------------
+Changed
+- "Add to my plants" now saves the plant immediately (photo, names, tasks, notes)
+  instead of filling in the manual form. A confirmation shows spot checkboxes
+  ("Where is it growing?") and an Undo button.
+- Low-confidence identifications show "Add anyway" plus a note suggesting a clearer photo.
+- Scientific name is now shown in bold italics with the common name beside it, on
+  plant cards, the calendar, the focus list, and the spots list.
+- Tapping a "could also be" suggestion now switches the species on the current result,
+  keeps the photo, and uses a care lookup. It does not call Plant.id again.
+- Hourly identification limit lowered from 20 to 10 per IP (care lookups stay at 40).
+
+Added
+- Short care notes (sun, soil, water, one tip) for all 51 built-in species, used
+  automatically so notes always transfer for those plants.
+- Edit button on each plant card: edit common name, scientific name, and notes.
+- Duplicate check: if an identified species matches a saved plant (by scientific name,
+  or genus when either side is "spp."), the user chooses to replace that plant's photo
+  or add it as a new plant.
+- Small plant thumbnail next to tasks in the calendar month list and the 30-day focus list.
+- Message when a care lookup fails, saying generic tasks will be used.
+- Same-photo retries in one session reuse the earlier result (no extra Plant.id credit).
+- Specific error message when a photo format cannot be read (for example iPhone HEIC).
+- Alert when browser storage is full, so failed saves are no longer silent.
+
+Fixed
+- Photo was dropped when a "could also be" suggestion was tapped.
+- Care notes were blank for species already in the built-in list.
+- Plant.id results with no common name showed the scientific name in the common-name slot.
+- Plant IDs could collide if two plants were created within the same millisecond.
+
+Notes
+- Each plant still has a single photo. "Replace photo" overwrites it. Multiple photos per
+  plant are planned for Phase 2.
+- Existing plants get their scientific name filled in automatically when they belong to
+  a built-in species. Plants typed by hand can be updated with the Edit button.
+
+
+[1.3.0] Cloud sync
+------------------
+Added
+- Cross-device sync: api/garden.js stores the whole garden as one JSON row in Postgres
+  (Neon). Uses the same password as photo identification.
+- Versioned saves with conflict handling: a second device editing the same version is
+  asked whether to keep its own copy or use the cloud copy.
+- Sync status line at the top of the app (Synced, Syncing, Offline, Sync off).
+- Settings > Backup: download and restore the garden as a JSON file.
+- Local-first behavior: changes save in the browser first and upload shortly after.
+
+Changed
+- Data from backups and the cloud is sanitized on load (ids, photo data, task names,
+  numeric fields), and calendar reasons are escaped.
+- package.json now depends on @neondatabase/serverless.
+
+Notes
+- Requires the Neon integration (Vercel Storage tab), which provides DATABASE_URL.
+- One shared garden per password. Sync only works on the Vercel deployment.
+
+
+[1.2.0] Manual care lookup
+--------------------------
+Added
+- "Look up care for this name" button in the manual add form for plants not in the
+  built-in list. Claude resolves common or scientific names and returns type,
+  hardiness range, tasks with priorities, notes, and toxicity.
+- Species learned this way are saved so each is looked up only once.
+- Manual form relabeled "Add a plant manually".
+
+Changed
+- api/care.js also returns recognized, common, and scientific fields.
+
+
+[1.1.0] Hybrid identification
+-----------------------------
+Added
+- Plant.id integration for photo identification (probability, alternatives, optional
+  health check). Claude supplies care tasks only for species not already known.
+- IDENTIFIER=claude setting to compare against Claude-only identification.
+- api/care.js (text-only Claude lookup), api/_lib.js (shared password, rate limit,
+  validation helpers). Models set by CLAUDE_MODEL and CARE_MODEL.
+
+Notes
+- Needs PLANT_ID_API_KEY and ANTHROPIC_API_KEY. Plant.id request details were based on
+  published examples and should be checked against their current docs if requests fail.
+
+
+[1.0.0] First Vercel package
+----------------------------
+Added
+- Project folder for Vercel: index.html, api/identify.js, vercel.json, package.json.
+- Photo identification through Claude vision, with the API key kept on the server.
+- Shared-password protection, image size cap, per-IP rate limit, and validated output.
+- Browser-side photo resizing (1024 px) and small thumbnails saved with each plant.
+
+
+[0.4.0] Lavender pruning
+------------------------
+Changed
+- Lavender uses a species-specific task, "Prune before frost", scheduled about 6 weeks
+  before the first frost, and existing lavender plants were migrated to it.
+
+
+[0.3.0] Garden spots
+--------------------
+Added
+- Spots tab: create garden spots and set sunlight (full sun, part sun, part shade,
+  full shade). Each spot lists its plants.
+- Plants can belong to several spots (checkboxes replaced the original dropdown).
+- Older single-spot text was converted into spots automatically.
+
+
+[0.2.0] Plant database and priorities
+-------------------------------------
+Added
+- Built-in list of about 50 common garden plants with autocomplete by common or
+  scientific name.
+- Annual vs perennial status by hardiness zone, with tasks adjusted for plants grown
+  as annuals in the user's zone.
+- Task priorities (Critical, Recommended, Optional) and a "Focus for the next 30 days"
+  list ranked by importance and urgency, with a plant-health reason for each task.
+
+
+[0.1.0] Initial planner
+-----------------------
+Added
+- Plant catalogue with care tasks (heavy and light pruning, deadheading, fertilizing,
+  dividing, cutting back for winter).
+- Month calendar of tasks scheduled from the user's last spring and first fall frost
+  dates, with a USDA zone selector and editable frost dates.
+- Local browser storage and tick-off of completed tasks.
+
+
+PLANNED
+-------
+- Plant recommendations by spot sunlight and desired traits (height, ground cover,
+  bloom season, flower and leaf color).
+- Treatment text for Plant.id health checks.
+- Stricter rate limiting backed by a data store.
